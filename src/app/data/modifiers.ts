@@ -1,0 +1,183 @@
+import {
+  BsCondition,
+  BsConditionGroup,
+  BsModifier,
+  BsSelectionEntry,
+  BsSelectionEntryGroup,
+} from '../models/battlescribe';
+import { RosterModel, RosterSelection, Warband } from '../models/roster';
+
+export interface EvalContext {
+  warband: Warband;
+  model?: RosterModel;
+  siblingEntryIds?: string[];
+}
+
+function walkSelections(sels: RosterSelection[]): string[] {
+  const ids: string[] = [];
+  for (const s of sels) {
+    ids.push(s.entryId);
+    ids.push(...walkSelections(s.children));
+  }
+  return ids;
+}
+
+export function allEntryIds(warband: Warband, model?: RosterModel): { roster: string[]; root: string[] } {
+  const roster: string[] = [warband.allegianceEntryId, ...warband.denUpgradeIds];
+  for (const m of warband.models) {
+    roster.push(m.entryId);
+    roster.push(...walkSelections(m.selections));
+  }
+  const root = model ? [model.entryId, ...walkSelections(model.selections)] : [];
+  return { roster, root };
+}
+
+function count(ids: string[], childId: string): number {
+  return ids.filter((id) => id === childId).length;
+}
+
+function evalCondition(cond: BsCondition, ctx: EvalContext): boolean {
+  const ids = allEntryIds(ctx.warband, ctx.model);
+  let n = 0;
+  const scope = cond.scope;
+  if (scope === 'roster' || scope === 'force') {
+    n = count(ids.roster, cond.childId || '');
+  } else if (scope === 'root-entry') {
+    n = count(ids.root, cond.childId || '');
+  } else if (scope === 'parent' || scope === 'self') {
+    n = count(ctx.siblingEntryIds ?? ids.root, cond.childId || '');
+  } else {
+    n = count(ids.roster, cond.childId || '');
+  }
+  const value = Number(cond.value);
+  switch (cond.type) {
+    case 'equalTo':
+      return n === value;
+    case 'atLeast':
+      return n >= value;
+    case 'atMost':
+      return n <= value;
+    case 'lessThan':
+      return n < value;
+    case 'greaterThan':
+      return n > value;
+    case 'notEqualTo':
+      return n !== value;
+    case 'instanceOf':
+      return n >= 1;
+    default:
+      return false;
+  }
+}
+
+function evalGroup(group: BsConditionGroup, ctx: EvalContext): boolean {
+  const results = [
+    ...group.conditions.map((c) => evalCondition(c, ctx)),
+    ...group.conditionGroups.map((g) => evalGroup(g, ctx)),
+  ];
+  if (results.length === 0) {
+    return true;
+  }
+  return group.type === 'or' ? results.some(Boolean) : results.every(Boolean);
+}
+
+export function modifierActive(mod: BsModifier, ctx: EvalContext): boolean {
+  const results = [
+    ...mod.conditions.map((c) => evalCondition(c, ctx)),
+    ...mod.conditionGroups.map((g) => evalGroup(g, ctx)),
+  ];
+  if (results.length === 0) {
+    return true;
+  }
+  return results.every(Boolean);
+}
+
+export function isHidden(
+  node: { hidden: boolean; modifiers: BsModifier[] },
+  ctx: EvalContext,
+): boolean {
+  let hidden = node.hidden;
+  for (const mod of node.modifiers) {
+    if (mod.field === 'hidden' && mod.type === 'set' && modifierActive(mod, ctx)) {
+      hidden = mod.value === 'true';
+    }
+  }
+  return hidden;
+}
+
+export function maxConstraint(
+  node: { constraints: { type: string; field: string; value: number; scope: string }[] },
+): number {
+  const max = node.constraints.find((c) => c.type === 'max' && c.field === 'selections');
+  return max ? max.value : Number.POSITIVE_INFINITY;
+}
+
+export function minConstraint(
+  node: { constraints: { type: string; field: string; value: number; scope: string }[] },
+): number {
+  const min = node.constraints.find((c) => c.type === 'min' && c.field === 'selections');
+  return min ? min.value : 0;
+}
+
+export function resolveEntry(
+  indexEntries: Map<string, BsSelectionEntry>,
+  id: string,
+): BsSelectionEntry | undefined {
+  return indexEntries.get(id);
+}
+
+export function resolveGroupChildren(
+  group: BsSelectionEntryGroup,
+  entries: Map<string, BsSelectionEntry>,
+  groups: Map<string, BsSelectionEntryGroup>,
+): { entries: BsSelectionEntry[]; groups: BsSelectionEntryGroup[] } {
+  const resultEntries = [...group.selectionEntries];
+  const resultGroups = [...group.selectionEntryGroups];
+  for (const link of group.entryLinks) {
+    if (link.type === 'selectionEntry') {
+      const target = entries.get(link.targetId);
+      if (target) {
+        resultEntries.push({
+          ...target,
+          hidden: link.hidden || target.hidden,
+          defaultAmount: link.defaultAmount || target.defaultAmount,
+          selectionEntries: [...target.selectionEntries, ...link.selectionEntries],
+          selectionEntryGroups: [...target.selectionEntryGroups, ...link.selectionEntryGroups],
+          entryLinks: [...target.entryLinks, ...link.entryLinks],
+        });
+      }
+    } else {
+      const target = groups.get(link.targetId);
+      if (target) {
+        resultGroups.push({
+          ...target,
+          hidden: link.hidden || target.hidden,
+        });
+      }
+    }
+  }
+  return { entries: resultEntries, groups: resultGroups };
+}
+
+export function resolveEntryChildren(
+  entry: BsSelectionEntry,
+  entries: Map<string, BsSelectionEntry>,
+  groups: Map<string, BsSelectionEntryGroup>,
+): { entries: BsSelectionEntry[]; groups: BsSelectionEntryGroup[] } {
+  const resultEntries = [...entry.selectionEntries];
+  const resultGroups = [...entry.selectionEntryGroups];
+  for (const link of entry.entryLinks) {
+    if (link.type === 'selectionEntry') {
+      const target = entries.get(link.targetId);
+      if (target) {
+        resultEntries.push(target);
+      }
+    } else {
+      const target = groups.get(link.targetId);
+      if (target) {
+        resultGroups.push(target);
+      }
+    }
+  }
+  return { entries: resultEntries, groups: resultGroups };
+}

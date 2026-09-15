@@ -1,0 +1,94 @@
+@if (warband) {
+  <header class="bar">
+    <a routerLink="/" class="back">← Bands</a>
+    <input class="band" [ngModel]="warband.name" (ngModelChange)="patchName($event)" />
+    <span class="pill">{{ warband.factionName }}</span>
+    <span class="pill" [class.over]="pennies > warband.pennyLimit">
+      {{ pennies }} / {{ warband.pennyLimit }} pennies
+    </span>
+    <span class="pill">Rating {{ rating }}</span>
+    <span class="actions">
+      <button type="button" (click)="save()">Save</button>
+      <button type="button" (click)="download()">Export JSON</button>
+      <label class="file">
+        Load
+        <input type="file" accept="application/json,.json" (change)="importFile($event)" />
+      </label>
+      <button type="button" class="primary" (click)="print()">Print roster</button>
+    </span>
+  </header>
+
+  @if (message) {
+    <p class="flash">{{ message }}</p>
+  }
+
+  <section class="meta-grid">
+    <label>Allegiance <input [ngModel]="warband.factionName" readonly /></label>
+    <label>Archetype <input [ngModel]="warband.archetype" (ngModelChange)="patchArchetype($event)" /></label>
+    <label>Rating <input [ngModel]="rating" readonly /></label>
+    <label>Penny limit <input type="number" [ngModel]="warband.pennyLimit" (ngModelChange)="patchNumber('pennyLimit', $event)" /></label>
+    <label>Pension <input type="number" [ngModel]="warband.pension" (ngModelChange)="patchNumber('pension', $event)" /></label>
+    <label>Labour <input type="number" [ngModel]="warband.labour" (ngModelChange)="patchNumber('labour', $event)" /></label>
+    <label>Materials <input type="number" [ngModel]="warband.materials" (ngModelChange)="patchNumber('materials', $event)" /></label>
+    <label>Treasury <input type="number" [ngModel]="warband.treasury" (ngModelChange)="patchNumber('treasury', $event)" /></label>
+    <label class="wide">Notes
+      <textarea rows="5" [ngModel]="warband.notes" (ngModelChange)="patchNotes($event)"></textarea>
+    </label>
+    <label class="wide">Stashed equipment
+      <textarea rows="5" [ngModel]="warband.stashedEquipment" (ngModelChange)="patchStash($event)"></textarea>
+    </label>
+  </section>
+
+  <section class="dens">
+    <h2>Den upgrades</h2>
+    <p class="muted">Selected cost {{ denCosts.labor }} labour and {{ denCosts.material }} materials.</p>
+    <div class="chips">
+      @for (den of dens; track den.id) {
+        <button type="button" class="chip" [class.on]="denOn(den.id)" (click)="toggleDen(den.id)">
+          {{ den.name }}
+          <small>{{ laborOf(den) }}L / {{ materialOf(den) }}M</small>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="beasts">
+    <div class="beasts-head">
+      <h2>Beasts</h2>
+      <button type="button" class="primary" (click)="pickerOpen = true">Add beast</button>
+    </div>
+    @if (warband.models.length === 0) {
+      <p class="muted">No beasts yet. Add a mouse, badger, or anything in between.</p>
+    }
+    <div class="cards">
+      @for (model of warband.models; track model.instanceId) {
+        <app-model-card [model]="model" />
+      }
+    </div>
+  </section>
+}
+
+@if (pickerOpen) {
+  <div class="modal" (click)="pickerOpen = false">
+    <div class="sheet" (click)="$event.stopPropagation()">
+      <header>
+        <h2>Add a beast</h2>
+        <button type="button" (click)="pickerOpen = false">Close</button>
+      </header>
+      <input class="search" type="search" placeholder="Search species" [(ngModel)]="query" />
+      @for (group of modelGroups; track group.size) {
+        <h3>{{ group.size }}</h3>
+        <ul>
+          @for (model of group.models; track model.id) {
+            <li>
+              <button type="button" (click)="add(model.id)">
+                <strong>{{ model.name }}</strong>
+                <span>{{ cost(model) }}p · {{ statsPreview(model).Level }} lvl · {{ statsPreview(model).Movement }} move</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+}

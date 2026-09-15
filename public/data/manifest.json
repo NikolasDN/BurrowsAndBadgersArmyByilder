@@ -1,0 +1,16 @@
+{
+  "gameSystem": "game-system.xml",
+  "catalogues": [
+    "catalogues/Arcane Conclave.xml",
+    "catalogues/Campaign.xml",
+    "catalogues/Freebeasts.xml",
+    "catalogues/Hillfolk.xml",
+    "catalogues/Kindred.xml",
+    "catalogues/Rogues.xml",
+    "catalogues/Routiers.xml",
+    "catalogues/Royalists.xml",
+    "catalogues/Undead.xml",
+    "catalogues/Wildlings.xml",
+    "catalogues/Witch Hunters.xml"
+  ]
+}

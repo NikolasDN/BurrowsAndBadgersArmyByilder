@@ -1,0 +1,66 @@
+<article class="card">
+  <header>
+    <div class="who">
+      <input class="name" [ngModel]="model.name" (ngModelChange)="rename($event)" />
+      <p class="species">{{ model.species }}</p>
+    </div>
+    <div class="meta">
+      @if (stats) {
+        <span class="level">Lv {{ stats.Level }}</span>
+      }
+      <span class="pennies">{{ pennies }}p</span>
+      <button type="button" class="text" (click)="expanded = !expanded">
+        {{ expanded ? 'Close' : 'Equip / skills' }}
+      </button>
+      <button type="button" class="danger" (click)="remove()">Remove</button>
+    </div>
+  </header>
+
+  @if (stats) {
+    <dl class="stats">
+      <div><dt>Move</dt><dd>{{ stats.Movement }}</dd></div>
+      <div><dt>Strike</dt><dd>{{ stats.Strike }}</dd></div>
+      <div><dt>Block</dt><dd>{{ stats.Block }}</dd></div>
+      <div><dt>Ranged</dt><dd>{{ stats.Ranged }}</dd></div>
+      <div><dt>Nimb.</dt><dd>{{ stats.Nimbleness }}</dd></div>
+      <div><dt>Conc.</dt><dd>{{ stats.Concealment }}</dd></div>
+      <div><dt>Aware</dt><dd>{{ stats.Awareness }}</dd></div>
+      <div><dt>Fort.</dt><dd>{{ stats.Fortitude }}</dd></div>
+      <div><dt>Pres.</dt><dd>{{ stats.Presence }}</dd></div>
+    </dl>
+  }
+
+  <p class="kit">
+    @if (buckets.weapons.length) {
+      <span>Weapons: {{ buckets.weapons.join(', ') }}</span>
+    }
+    @if (buckets.armour.length) {
+      <span>Armour: {{ buckets.armour.join(', ') }}</span>
+    }
+    @if (buckets.items.length) {
+      <span>Item: {{ buckets.items.join(', ') }}</span>
+    }
+    @if (buckets.skills.length) {
+      <span>Skills/spells: {{ buckets.skills.join(', ') }}</span>
+    }
+    @if (!buckets.weapons.length && !buckets.armour.length && !buckets.items.length && !buckets.skills.length) {
+      <span class="muted">No equipment or skills selected yet.</span>
+    }
+  </p>
+
+  @if (expanded) {
+    <div class="editor">
+      <div class="row">
+        <label>Fate <input type="number" min="0" max="16" [ngModel]="model.fate" (ngModelChange)="setFate($event)" /></label>
+        <label>Exp <input type="number" min="0" max="16" [ngModel]="model.exp" (ngModelChange)="setExp($event)" /></label>
+        <label class="check">
+          <input type="checkbox" [ngModel]="setupSelected" (ngModelChange)="toggleSetup()" />
+          Starting warband (uncheck to advance)
+        </label>
+      </div>
+      @for (group of characterChildren; track group.id) {
+        <app-option-group [group]="group" [model]="model" />
+      }
+    </div>
+  }
+</article>

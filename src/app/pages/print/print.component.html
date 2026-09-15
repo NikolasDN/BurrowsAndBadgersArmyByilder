@@ -1,0 +1,76 @@
+@if (warband) {
+  <div class="toolbar no-print">
+    <a routerLink="/builder">← Back to builder</a>
+    <button type="button" (click)="print()">Print / Save PDF</button>
+  </div>
+
+  <section class="sheet page-1">
+    <div class="top">
+      <div class="band-block">
+        <label class="banner">Band name</label>
+        <div class="field tall">{{ warband.name }}</div>
+        <label class="banner">Allegiance</label>
+        <div class="field">{{ warband.factionName }}</div>
+        <div class="resource-row">
+          <div class="box">
+            <span>{{ rating }}</span>
+            <label>Rating</label>
+          </div>
+          <div class="box wide">
+            <span>{{ warband.archetype }}</span>
+            <label>Archetype</label>
+          </div>
+        </div>
+        <div class="circles">
+          <div class="circle"><b>{{ warband.pension }}</b><label>Pension</label></div>
+          <div class="circle"><b>{{ warband.labour }}</b><label>Labour</label></div>
+          <div class="circle"><b>{{ warband.materials }}</b><label>Materials</label></div>
+          <div class="sack"><b>{{ warband.treasury }}</b><label>Treasury</label></div>
+        </div>
+        <label class="banner">Notes</label>
+        <div class="notes">{{ warband.notes }}</div>
+      </div>
+      <div class="stash-block">
+        <label class="banner">Stashed equipment</label>
+        <div class="stash">{{ warband.stashedEquipment }}</div>
+        <label class="banner">Den upgrades</label>
+        <ol class="dens">
+          @for (n of [0,1,2,3,4,5,6,7,8,9,10,11]; track n) {
+            <li>{{ denSlot(n) }}</li>
+          }
+        </ol>
+      </div>
+    </div>
+    <div class="beasts two">
+      @for (beast of page1; track $index) {
+        <app-print-beast
+          [model]="beast.model"
+          [stats]="beast.stats"
+          [weapons]="beast.weapons"
+          [armour]="beast.armour"
+          [items]="beast.items"
+          [special]="beast.special"
+          [skills]="beast.skills"
+        />
+      }
+    </div>
+  </section>
+
+  @for (page of extraPages; track $index) {
+    <section class="sheet">
+      <div class="beasts two">
+        @for (beast of page; track $index) {
+          <app-print-beast
+            [model]="beast.model"
+            [stats]="beast.stats"
+            [weapons]="beast.weapons"
+            [armour]="beast.armour"
+            [items]="beast.items"
+            [special]="beast.special"
+            [skills]="beast.skills"
+          />
+        }
+      </div>
+    </section>
+  }
+}

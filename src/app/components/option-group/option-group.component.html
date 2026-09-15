@@ -1,0 +1,66 @@
+@if (!hiddenByModifiers) {
+  <section class="group" [class.nested]="depth > 0">
+    <button type="button" class="group-head" (click)="toggleOpen()">
+      <span class="chevron" [class.open]="open">▸</span>
+      <span class="title">{{ group.name }}</span>
+      @if (current.length) {
+        <span class="count">{{ current.length }}</span>
+      }
+      @if (hasMax) {
+        <span class="limit">max {{ groupMax }}</span>
+      }
+    </button>
+
+    @if (open) {
+      <div class="body">
+        @if (visibleEntries.length > 8) {
+          <input class="search" type="search" placeholder="Search {{ group.name }}" [(ngModel)]="query" />
+        }
+
+        <ul class="options">
+          @for (entry of filteredEntries; track entry.id) {
+            <li>
+              <button
+                type="button"
+                class="opt"
+                [class.on]="isSelected(entry.id)"
+                [disabled]="!isSelected(entry.id) && atMax && groupMax !== 1"
+                (click)="toggle(entry)"
+                (mouseenter)="hintFor = entry.id"
+                (mouseleave)="hintFor = null"
+              >
+                <span class="check">{{ isSelected(entry.id) ? '✓' : '' }}</span>
+                <span class="name">{{ entry.name }}</span>
+                @if (costOf(entry)) {
+                  <span class="cost">{{ costOf(entry) }}p</span>
+                }
+              </button>
+              @if (isSelected(entry.id)) {
+                @for (child of nestedGroups(selectionFor(entry.id)!); track child.id) {
+                  <app-option-group
+                    [group]="child"
+                    [model]="model"
+                    [parentInstanceId]="selectionFor(entry.id)!.instanceId"
+                    [depth]="depth + 1"
+                  />
+                }
+              }
+              @if (hintFor === entry.id && hint(entry)) {
+                <p class="hint">{{ hint(entry) }}</p>
+              }
+            </li>
+          }
+        </ul>
+
+        @for (child of visibleGroups; track child.id) {
+          <app-option-group
+            [group]="child"
+            [model]="model"
+            [parentInstanceId]="parentInstanceId"
+            [depth]="depth + 1"
+          />
+        }
+      </div>
+    }
+  </section>
+}
