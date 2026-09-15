@@ -1,0 +1,55 @@
+<article class="beast">
+  <div class="identity">
+    <div>
+      <label>Name</label>
+      <div class="line">{{ model?.name }}</div>
+      <label>Species</label>
+      <div class="line">{{ model?.species }}</div>
+    </div>
+    <div class="trackers">
+      <div>
+        <span class="tiny">Fate</span>
+        <div class="grid16">
+          @for (on of boxes(model?.fate || 0); track $index) {
+            <i [class.filled]="on">{{ $index + 1 }}</i>
+          }
+        </div>
+      </div>
+      <div>
+        <span class="tiny">Exp</span>
+        <div class="grid16">
+          @for (on of boxes(model?.exp || 0); track $index) {
+            <i [class.filled]="on">{{ $index + 1 }}</i>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="stat-col">
+      <div class="level"><small>Level</small><strong>{{ stats.Level }}</strong></div>
+      <div class="stat"><small>Move</small><strong>{{ stats.Movement }}</strong></div>
+      <div class="stat"><small>Strike</small><strong>{{ stats.Strike }}</strong></div>
+      <div class="stat"><small>Block</small><strong>{{ stats.Block }}</strong></div>
+      <div class="stat"><small>Ranged</small><strong>{{ stats.Ranged }}</strong></div>
+      <div class="stat"><small>Nimbleness</small><strong>{{ stats.Nimbleness }}</strong></div>
+      <div class="stat"><small>Concealment</small><strong>{{ stats.Concealment }}</strong></div>
+      <div class="stat"><small>Awareness</small><strong>{{ stats.Awareness }}</strong></div>
+      <div class="stat"><small>Fortitude</small><strong>{{ stats.Fortitude }}</strong></div>
+      <div class="stat"><small>Presence</small><strong>{{ stats.Presence }}</strong></div>
+    </div>
+    <div class="skills">
+      <label>Skills, spells etc</label>
+      <div class="skills-body">{{ skills.join(', ') }}</div>
+      <div class="equip">
+        <label>Equipment</label>
+        <div><span>Weapon 1</span><b>{{ weapons[0] }}</b></div>
+        <div><span>Weapon 2</span><b>{{ weapons[1] }}</b></div>
+        <div><span>Armour 1</span><b>{{ armour[0] }}</b></div>
+        <div><span>Armour 2</span><b>{{ armour[1] }}</b></div>
+        <div><span>Item</span><b>{{ items.join(', ') }}</b></div>
+        <div><span>Special</span><b>{{ special.join(', ') }}</b></div>
+      </div>
+    </div>
+  </div>
+</article>

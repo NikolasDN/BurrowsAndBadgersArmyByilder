@@ -1,0 +1,46 @@
+.masthead {
+  margin-bottom: 1.2rem;
+}
+
+.brand {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mark {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #3d5c3a;
+  color: #f6edd8;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+}
+
+.brand small {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b4a2b;
+}
+
+footer {
+  margin-top: 2.5rem;
+  font-size: 0.8rem;
+  color: #6b4a2b;
+}
+
+@media print {
+  .masthead,
+  footer {
+    display: none;
+  }
+
+  main {
+    margin: 0;
+  }
+}

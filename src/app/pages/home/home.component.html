@@ -1,0 +1,65 @@
+<section class="hero">
+  <p class="eyebrow">Burrows &amp; Badgers · Second Edition</p>
+  <h1>Warband List Builder</h1>
+  <p class="lead">
+    Raise a band from the official Battlescribe catalogues, kit them out, save your lists, and print a band roster.
+  </p>
+</section>
+
+@if (loading) {
+  <p class="status">Loading beasts, weapons, and allegiance rules…</p>
+} @else if (error) {
+  <p class="status error">{{ error }}</p>
+} @else {
+  <div class="layout">
+    <form class="panel" (submit)="$event.preventDefault(); start()">
+      <h2>Start a new warband</h2>
+      <label>
+        Band name
+        <input [(ngModel)]="bandName" name="bandName" placeholder="The Hollow Oak Kindred" />
+      </label>
+      <label>
+        Allegiance
+        <select [(ngModel)]="selectedFaction" name="faction">
+          @for (faction of factions; track faction.id) {
+            <option [value]="faction.id">{{ faction.name }}</option>
+          }
+        </select>
+      </label>
+      @if (selectedRules.length) {
+        <ul class="rules">
+          @for (rule of selectedRules; track rule.id) {
+            <li><strong>{{ rule.name }}.</strong> {{ rule.description }}</li>
+          }
+        </ul>
+      }
+      <button class="primary" type="submit">Create warband</button>
+    </form>
+
+    <div class="panel">
+      <h2>Saved &amp; imported lists</h2>
+      @if (saved.length === 0) {
+        <p class="muted">No saved warbands in this browser yet.</p>
+      } @else {
+        <ul class="saved">
+          @for (band of saved; track band.id) {
+            <li>
+              <button type="button" class="saved-btn" (click)="open(band.id)">
+                <strong>{{ band.name }}</strong>
+                <span>{{ band.factionName }} · {{ band.models.length }} beasts</span>
+              </button>
+              <button type="button" class="ghost" (click)="remove(band.id, $event)">Delete</button>
+            </li>
+          }
+        </ul>
+      }
+      <label class="import">
+        Load warband JSON
+        <input type="file" accept="application/json,.json" (change)="importFile($event)" />
+      </label>
+      @if (loadError) {
+        <p class="status error">{{ loadError }}</p>
+      }
+    </div>
+  </div>
+}

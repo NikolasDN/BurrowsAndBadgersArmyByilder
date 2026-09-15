@@ -1,0 +1,128 @@
+.beast {
+  border: 2px solid #4a301a;
+  background: #f7f1e4;
+  padding: 0.3rem;
+  height: 100%;
+  min-height: 0;
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.identity {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+}
+
+label,
+.tiny {
+  display: block;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5a3b22;
+}
+
+.line {
+  border-bottom: 1px solid #4a301a;
+  min-height: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.grid16 {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 1px;
+  width: 8.2rem;
+}
+
+.grid16 i {
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: 0.45rem;
+  border: 1px solid #4a301a;
+  height: 0.7rem;
+}
+
+.grid16 i.filled {
+  background: #3d5c3a;
+  color: #f6edd8;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 2.8cm 1fr;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.level,
+.stat {
+  border: 1px solid #4a301a;
+  border-radius: 0.35rem 0.7rem 0.35rem 0.7rem;
+  padding: 0.05rem 0.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fffdf7;
+  font-size: 0.72rem;
+}
+
+.level {
+  width: 1.45cm;
+  height: 1.45cm;
+  border-radius: 50%;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0 auto 0.08rem;
+}
+
+.skills-body {
+  flex: 1;
+  border: 1px solid #4a301a;
+  min-height: 1.6cm;
+  padding: 0.15rem;
+  font-size: 0.7rem;
+  overflow: hidden;
+}
+
+.skills {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.equip {
+  margin-top: 0.15rem;
+}
+
+.equip > label {
+  text-align: center;
+}
+
+.equip div {
+  display: grid;
+  grid-template-columns: 2.1cm 1fr;
+  border-bottom: 1px solid #4a301a;
+  min-height: 0.72rem;
+  font-size: 0.72rem;
+  align-items: center;
+}
+
+.equip span {
+  text-transform: uppercase;
+  font-size: 0.52rem;
+  letter-spacing: 0.04em;
+}

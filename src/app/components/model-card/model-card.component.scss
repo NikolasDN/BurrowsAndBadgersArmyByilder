@@ -1,0 +1,128 @@
+.card {
+  background: linear-gradient(180deg, #fff8ea 0%, #f3e4c8 100%);
+  border: 1px solid rgba(74, 48, 26, 0.25);
+  border-radius: 14px;
+  padding: 0.9rem 1rem 1rem;
+  box-shadow: 0 10px 24px rgba(44, 24, 16, 0.08);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.who {
+  flex: 1;
+}
+
+.name {
+  width: 100%;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(74, 48, 26, 0.25);
+  color: inherit;
+}
+
+.species {
+  margin: 0.2rem 0 0;
+  color: #6b4a2b;
+  font-size: 0.9rem;
+}
+
+.meta {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.level,
+.pennies {
+  background: #2f2418;
+  color: #f6edd8;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+button.text,
+button.danger {
+  border-radius: 999px;
+  border: 1px solid rgba(74, 48, 26, 0.3);
+  background: #fffaf0;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+button.danger {
+  color: #8a2a1a;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(4.4rem, 1fr));
+  gap: 0.35rem;
+  margin: 0.8rem 0 0.5rem;
+}
+
+.stats div {
+  background: #f7ecda;
+  border: 1px solid rgba(74, 48, 26, 0.15);
+  border-radius: 8px;
+  padding: 0.25rem 0.3rem;
+  text-align: center;
+}
+
+dt {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b4a2b;
+}
+
+dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.kit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.88rem;
+  margin: 0.4rem 0 0;
+}
+
+.muted {
+  color: #7a6550;
+}
+
+.editor {
+  margin-top: 0.8rem;
+  border-top: 1px dashed rgba(74, 48, 26, 0.25);
+  padding-top: 0.7rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+  align-items: center;
+}
+
+.row input[type='number'] {
+  width: 4rem;
+  margin-left: 0.3rem;
+}
+
+.check {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}

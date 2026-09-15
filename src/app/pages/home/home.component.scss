@@ -1,0 +1,112 @@
+.hero {
+  margin-bottom: 1.6rem;
+}
+
+.eyebrow {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: #6b4a2b;
+  margin: 0 0 0.4rem;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  margin: 0 0 0.5rem;
+}
+
+.lead {
+  max-width: 42rem;
+  font-size: 1.1rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.panel {
+  background: rgba(255, 248, 234, 0.88);
+  border: 1px solid rgba(74, 48, 26, 0.2);
+  border-radius: 16px;
+  padding: 1.1rem 1.2rem 1.3rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.7rem 0;
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(74, 48, 26, 0.25);
+  background: #fffaf0;
+}
+
+.rules {
+  max-height: 12rem;
+  overflow: auto;
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+}
+
+.primary {
+  margin-top: 0.6rem;
+  background: #3d5c3a;
+  color: #f6edd8;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.saved {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.saved li {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.saved-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #fffaf0;
+  border: 1px solid rgba(74, 48, 26, 0.18);
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ghost {
+  background: transparent;
+  border: 0;
+  color: #8a2a1a;
+  cursor: pointer;
+}
+
+.muted,
+.status {
+  color: #6b4a2b;
+}
+
+.error {
+  color: #8a2a1a;
+}
