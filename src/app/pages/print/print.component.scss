@@ -17,20 +17,24 @@
 
 .sheet {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
   margin: 0 auto 12mm;
   background: #efe6d2;
   color: #2c1810;
-  padding: 8mm;
+  padding: 7mm;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .top {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6mm;
-  min-height: 118mm;
+  gap: 5mm;
+  height: 46%;
+  min-height: 0;
 }
 
 .banner {
@@ -48,20 +52,34 @@
 .notes,
 .stash {
   border: 1px solid #4a301a;
-  min-height: 9mm;
-  margin: 2mm 0 4mm;
-  padding: 2mm;
+  min-height: 7mm;
+  margin: 1.5mm 0 3mm;
+  padding: 1.5mm;
   background: #fbf7ee;
   white-space: pre-wrap;
+  overflow: auto;
 }
 
-.field.tall,
+.field.tall {
+  min-height: 10mm;
+}
+
 .notes {
-  min-height: 22mm;
+  min-height: 0;
+  flex: 1;
+  font-size: 0.68rem;
 }
 
 .stash {
-  min-height: 52mm;
+  min-height: 0;
+  flex: 1;
+}
+
+.band-block,
+.stash-block {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .resource-row {
@@ -111,6 +129,7 @@
   padding: 0;
   margin: 2mm 0 0;
   border: 1px solid #4a301a;
+  flex: 1;
 }
 
 .dens li {
@@ -127,8 +146,17 @@
 .beasts {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5mm;
-  margin-top: 6mm;
+  grid-auto-rows: 1fr;
+  gap: 4mm;
+  margin-top: 4mm;
+  flex: 1;
+  min-height: 0;
+}
+
+app-print-beast {
+  display: block;
+  min-height: 0;
+  height: 100%;
 }
 
 @media print {
@@ -145,8 +173,8 @@
     box-shadow: none;
     margin: 0;
     page-break-after: always;
-    width: auto;
-    min-height: auto;
+    width: 210mm;
+    height: 277mm;
   }
 }
 
