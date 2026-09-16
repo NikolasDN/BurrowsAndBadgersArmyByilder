@@ -9,7 +9,9 @@ import { CatalogueService } from '../../services/catalogue.service';
 import { RosterService } from '../../services/roster.service';
 import {
   isHidden,
-  maxConstraint,
+  selectionLimits,
+  rosterSelectionCount,
+  canAddSelection,
   resolveEntryChildren,
   resolveGroupChildren,
 } from '../../data/modifiers';
@@ -68,16 +70,31 @@ export class OptionGroupComponent {
     return isHidden(this.group, this.ctx);
   }
 
-  get groupMax(): number {
-    return maxConstraint(this.group);
+  get groupLimits() {
+    return selectionLimits(this.group);
   }
 
-  get hasMax(): boolean {
-    return Number.isFinite(this.groupMax);
+  get localMax(): number {
+    return this.groupLimits.local;
   }
 
-  get atMax(): boolean {
-    return this.current.length >= this.groupMax;
+  get rosterMax(): number {
+    return this.groupLimits.roster;
+  }
+
+  get rosterUsed(): number {
+    return rosterSelectionCount(this.ctx.warband, (s) => s.groupId === this.group.id);
+  }
+
+  hasFiniteMax(n: number): boolean {
+    return Number.isFinite(n);
+  }
+
+  canSelect(entry: BsSelectionEntry): boolean {
+    if (this.isSelected(entry.id)) {
+      return true;
+    }
+    return this.addDecision(entry).allowed;
   }
 
   selectedCount(entryId: string): number {
@@ -101,17 +118,29 @@ export class OptionGroupComponent {
       this.removeEntry(entry.id);
       return;
     }
-    if (this.atMax) {
-      if (this.groupMax === 1 && this.current.length === 1) {
-        this.replaceAll(entry);
-        return;
-      }
+    const decision = this.addDecision(entry);
+    if (!decision.allowed) {
       return;
     }
-    if (maxConstraint(entry) <= this.selectedCount(entry.id)) {
+    if (decision.replace) {
+      this.replaceAll(entry);
       return;
     }
     this.add(entry);
+  }
+
+  private addDecision(entry: BsSelectionEntry) {
+    const entryLimits = selectionLimits(entry);
+    return canAddSelection({
+      localCount: this.current.length,
+      localMax: this.localMax,
+      rosterCount: this.rosterUsed,
+      rosterMax: this.rosterMax,
+      entryLocalCount: this.selectedCount(entry.id),
+      entryLocalMax: entryLimits.local,
+      entryRosterCount: rosterSelectionCount(this.ctx.warband, (s) => s.entryId === entry.id),
+      entryRosterMax: entryLimits.roster,
+    });
   }
 
   add(entry: BsSelectionEntry): void {

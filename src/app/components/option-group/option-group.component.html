@@ -6,8 +6,11 @@
       @if (current.length) {
         <span class="count">{{ current.length }}</span>
       }
-      @if (hasMax) {
-        <span class="limit">max {{ groupMax }}</span>
+      @if (hasFiniteMax(localMax)) {
+        <span class="limit">max {{ localMax }}</span>
+      }
+      @if (hasFiniteMax(rosterMax)) {
+        <span class="limit">{{ rosterUsed }}/{{ rosterMax }} in band</span>
       }
     </button>
 
@@ -24,7 +27,7 @@
                 type="button"
                 class="opt"
                 [class.on]="isSelected(entry.id)"
-                [disabled]="!isSelected(entry.id) && atMax && groupMax !== 1"
+                [disabled]="!canSelect(entry)"
                 (click)="toggle(entry)"
                 (mouseenter)="hintFor = entry.id"
                 (mouseleave)="hintFor = null"
