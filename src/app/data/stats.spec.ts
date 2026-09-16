@@ -1,4 +1,4 @@
-import { computeModelPennies, computeStats, equipmentBuckets, startingSkills } from './stats';
+import { computeModelPennies, computeStats, equipmentBuckets, printSkillLine, printSkillLines, startingSkills } from './stats';
 import { parseGameSystem, finalizeIndex } from './xml-parser';
 import { Warband, RosterModel } from '../models/roster';
 
@@ -120,5 +120,17 @@ describe('stats', () => {
       ],
     };
     expect(equipmentBuckets(index, model).skills).toEqual(['Flight', 'Strong (1)', 'Delicate (2)', 'Swim']);
+    expect(printSkillLines(index, model)).toEqual([
+      'Flight (Fly.)',
+      'Strong (1) (Adds Strong.)',
+      'Delicate (2) (Fragile.)',
+      'Swim',
+    ]);
+    expect(
+      printSkillLine({
+        name: 'Flight',
+        effect: 'The model may move by flying.',
+      }),
+    ).toBe('Flight (The model may move by flying.)');
   });
 });
