@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogueService } from '../../services/catalogue.service';
@@ -9,6 +9,7 @@ import { BsFaction } from '../../models/battlescribe';
   selector: 'app-home',
   imports: [FormsModule],
   templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {

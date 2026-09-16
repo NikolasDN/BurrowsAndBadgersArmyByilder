@@ -1,9 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { EMPTY_STATS, RosterModel, UnitStats } from '../../models/roster';
 
 @Component({
   selector: 'app-print-beast',
   templateUrl: './print-beast.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './print-beast.component.scss',
 })
 export class PrintBeastComponent {

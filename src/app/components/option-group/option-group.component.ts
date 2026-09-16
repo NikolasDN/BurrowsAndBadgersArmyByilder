@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   BsSelectionEntry,
@@ -22,6 +22,7 @@ import { pennyCost } from '../../data/xml-parser';
   selector: 'app-option-group',
   imports: [FormsModule, OptionGroupComponent],
   templateUrl: './option-group.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './option-group.component.scss',
 })
 export class OptionGroupComponent implements OnInit {

@@ -72,7 +72,7 @@ describe('xml-parser', () => {
     expect(index.factions[0].rules[0].description).toContain('heavy armour');
     expect(index.profiles.get('p1')?.characteristics[0].value).toBe('d6');
     expect(index.models[0].infoLinks[0].modifiers).toEqual([
-      jasmine.objectContaining({ type: 'set', value: '1', field: 'annotation' }),
+      expect.objectContaining({ type: 'set', value: '1', field: 'annotation' }),
     ]);
   });
 

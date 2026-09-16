@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RosterModel } from '../../models/roster';
 import { RosterService } from '../../services/roster.service';
@@ -11,6 +11,7 @@ import { equipmentBuckets } from '../../data/stats';
   selector: 'app-model-card',
   imports: [FormsModule, OptionGroupComponent],
   templateUrl: './model-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './model-card.component.scss',
 })
 export class ModelCardComponent {
