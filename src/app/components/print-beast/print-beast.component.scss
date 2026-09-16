@@ -94,8 +94,13 @@ label,
   border: 1px solid #4a301a;
   min-height: 1.6cm;
   padding: 0.15rem;
-  font-size: 0.7rem;
-  overflow: hidden;
+  font-size: 0.58rem;
+  line-height: 1.25;
+  overflow: auto;
+}
+
+.skills-body p {
+  margin: 0 0 0.22rem;
 }
 
 .skills {

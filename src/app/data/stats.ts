@@ -82,6 +82,109 @@ export function computeRating(index: CatalogueIndex, models: RosterModel[], ctxF
   }, 0);
 }
 
+export interface RosterSkill {
+  name: string;
+  effect: string;
+}
+
+function tidyEffect(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function effectFromProfile(profile: { characteristics: { name: string; value: string }[] }): string {
+  const preferred = profile.characteristics.find(
+    (c) => c.name === 'Effect' || c.name === 'Rules' || c.name === 'Description',
+  );
+  if (preferred?.value) {
+    return tidyEffect(preferred.value);
+  }
+  const bits = profile.characteristics.filter((c) => c.value).map((c) => tidyEffect(c.value));
+  return bits.join(' ');
+}
+
+function effectFromLink(index: CatalogueIndex, link: BsInfoLink): string {
+  const rule = index.rules.get(link.targetId);
+  if (rule?.description) {
+    return tidyEffect(rule.description);
+  }
+  const profile = index.profiles.get(link.targetId);
+  return profile ? effectFromProfile(profile) : '';
+}
+
+function effectFromEntry(index: CatalogueIndex, entry: BsSelectionEntry): string {
+  for (const link of entry.infoLinks) {
+    const text = effectFromLink(index, link);
+    if (text) {
+      return text;
+    }
+  }
+  for (const rule of entry.rules) {
+    if (rule.description) {
+      return tidyEffect(rule.description);
+    }
+  }
+  for (const profile of entry.profiles) {
+    if (profile.typeName === 'Unit' || profile.typeId === UNIT_PROFILE_TYPE) {
+      continue;
+    }
+    const text = effectFromProfile(profile);
+    if (text) {
+      return text;
+    }
+  }
+  return '';
+}
+
+function nameKeys(name: string): string[] {
+  const keys = [name];
+  const stripped = name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if (stripped && stripped !== name) {
+    keys.push(stripped, `${stripped} (X)`);
+  }
+  return keys;
+}
+
+function effectByName(index: CatalogueIndex, name: string): string {
+  const keys = new Set(nameKeys(name).map((k) => k.toLowerCase()));
+  for (const rule of index.rules.values()) {
+    if (keys.has(rule.name.toLowerCase()) && rule.description) {
+      return tidyEffect(rule.description);
+    }
+  }
+  for (const profile of index.profiles.values()) {
+    if (keys.has(profile.name.toLowerCase())) {
+      const text = effectFromProfile(profile);
+      if (text) {
+        return text;
+      }
+    }
+  }
+  return '';
+}
+
+function skillEffect(index: CatalogueIndex, name: string, entry?: BsSelectionEntry, link?: BsInfoLink): string {
+  if (link) {
+    const fromLink = effectFromLink(index, link);
+    if (fromLink) {
+      return fromLink;
+    }
+  }
+  if (entry) {
+    const fromEntry = effectFromEntry(index, entry);
+    if (fromEntry) {
+      return fromEntry;
+    }
+  }
+  return effectByName(index, name);
+}
+
+export function printSkillLine(skill: RosterSkill): string {
+  if (!skill.effect) {
+    return skill.name;
+  }
+  return `${skill.name} (${skill.effect})`;
+}
+
 function formatInfoLinkName(index: CatalogueIndex, link: BsInfoLink): string {
   const target = index.rules.get(link.targetId) ?? index.profiles.get(link.targetId);
   let name = link.name || target?.name || '';
@@ -109,8 +212,8 @@ function formatInfoLinkName(index: CatalogueIndex, link: BsInfoLink): string {
   return name.trim();
 }
 
-export function startingSkills(index: CatalogueIndex, entry: BsSelectionEntry): string[] {
-  const names: string[] = [];
+export function startingSkillDetails(index: CatalogueIndex, entry: BsSelectionEntry): RosterSkill[] {
+  const skills: RosterSkill[] = [];
   const seen = new Set<string>();
   for (const link of entry.infoLinks) {
     if (link.hidden) {
@@ -122,18 +225,63 @@ export function startingSkills(index: CatalogueIndex, entry: BsSelectionEntry): 
       continue;
     }
     seen.add(key);
-    names.push(name);
+    skills.push({ name, effect: skillEffect(index, name, undefined, link) });
   }
-  return names;
+  return skills;
 }
 
-function pushUnique(list: string[], seen: Set<string>, name: string): void {
-  const key = name.toLowerCase();
-  if (!name || seen.has(key)) {
+export function startingSkills(index: CatalogueIndex, entry: BsSelectionEntry): string[] {
+  return startingSkillDetails(index, entry).map((s) => s.name);
+}
+
+function pushUniqueSkill(list: RosterSkill[], seen: Set<string>, skill: RosterSkill): void {
+  const key = skill.name.toLowerCase();
+  if (!skill.name || seen.has(key)) {
     return;
   }
   seen.add(key);
-  list.push(name);
+  list.push(skill);
+}
+
+export function modelSkills(index: CatalogueIndex, model: RosterModel): RosterSkill[] {
+  const skills: RosterSkill[] = [];
+  const seenSkills = new Set<string>();
+  const entry = index.entries.get(model.entryId);
+  if (entry) {
+    for (const skill of startingSkillDetails(index, entry)) {
+      pushUniqueSkill(skills, seenSkills, skill);
+    }
+  }
+
+  const visit = (sels: RosterSelection[], groupName: string) => {
+    for (const sel of sels) {
+      const group = index.groups.get(sel.groupId);
+      const name = group?.name || groupName;
+      const lower = name.toLowerCase();
+      const isSkillGroup =
+        (lower.includes('skill') ||
+          lower.includes('spell') ||
+          lower.includes('magic') ||
+          lower.includes('injury') ||
+          lower === 'rank' ||
+          lower.includes('innate')) &&
+        !['equipment', 'weapon slots', 'armor slots', 'items slot', 'special slot'].includes(lower);
+      if (isSkillGroup) {
+        const selEntry = index.entries.get(sel.entryId);
+        pushUniqueSkill(skills, seenSkills, {
+          name: sel.name,
+          effect: skillEffect(index, sel.name, selEntry),
+        });
+      }
+      visit(sel.children, name);
+    }
+  };
+  visit(model.selections, '');
+  return skills;
+}
+
+export function printSkillLines(index: CatalogueIndex, model: RosterModel): string[] {
+  return modelSkills(index, model).map(printSkillLine);
 }
 
 export function equipmentBuckets(
@@ -144,15 +292,6 @@ export function equipmentBuckets(
   const armour: string[] = [];
   const items: string[] = [];
   const special: string[] = [];
-  const skills: string[] = [];
-  const seenSkills = new Set<string>();
-
-  const entry = index.entries.get(model.entryId);
-  if (entry) {
-    for (const name of startingSkills(index, entry)) {
-      pushUnique(skills, seenSkills, name);
-    }
-  }
 
   const visit = (sels: RosterSelection[], groupName: string) => {
     for (const sel of sels) {
@@ -167,23 +306,18 @@ export function equipmentBuckets(
         items.push(sel.name);
       } else if (lower.includes('special slot')) {
         special.push(sel.name);
-      } else if (
-        lower.includes('skill') ||
-        lower.includes('spell') ||
-        lower.includes('magic') ||
-        lower.includes('injury') ||
-        lower === 'rank' ||
-        lower.includes('innate')
-      ) {
-        if (!['equipment', 'weapon slots', 'armor slots', 'items slot', 'special slot'].includes(lower)) {
-          pushUnique(skills, seenSkills, sel.name);
-        }
       }
       visit(sel.children, name);
     }
   };
   visit(model.selections, '');
-  return { weapons, armour, items, special, skills };
+  return {
+    weapons,
+    armour,
+    items,
+    special,
+    skills: modelSkills(index, model).map((s) => s.name),
+  };
 }
 
 export function lookupProfileText(index: CatalogueIndex, entry: BsSelectionEntry): string {

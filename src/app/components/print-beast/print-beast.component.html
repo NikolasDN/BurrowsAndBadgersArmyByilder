@@ -40,7 +40,11 @@
     </div>
     <div class="skills">
       <label>Skills, spells etc</label>
-      <div class="skills-body">{{ skills.join(', ') }}</div>
+      <div class="skills-body">
+        @for (skill of skills; track $index) {
+          <p>{{ skill }}</p>
+        }
+      </div>
       <div class="equip">
         <label>Equipment</label>
         <div><span>Weapon 1</span><b>{{ weapons[0] }}</b></div>
