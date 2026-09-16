@@ -103,4 +103,18 @@ export class CatalogueService {
   characterGroup(): BsSelectionEntryGroup | undefined {
     return this.getIndex().groups.get(CHARACTER_GROUP_ID);
   }
+
+  /** Catalogue conditions sometimes key off an entryLink id instead of the target entry. */
+  idsAliasedTo(entryId: string): string[] {
+    if (!entryId) {
+      return [];
+    }
+    const aliases: string[] = [];
+    for (const [linkId, targetId] of this.getIndex().entryLinkTargets) {
+      if (targetId === entryId) {
+        aliases.push(linkId);
+      }
+    }
+    return aliases;
+  }
 }

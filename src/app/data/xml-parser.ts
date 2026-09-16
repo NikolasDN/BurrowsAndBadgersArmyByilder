@@ -220,6 +220,9 @@ function parseEntryLink(el: Element, index: CatalogueIndex): BsEntryLink {
   if (lWrap) {
     link.entryLinks = kids(lWrap, 'entryLink').map((c) => parseEntryLink(c, index));
   }
+  if (link.id && link.targetId) {
+    index.entryLinkTargets.set(link.id, link.targetId);
+  }
   return link;
 }
 
@@ -375,6 +378,7 @@ function emptyIndex(): CatalogueIndex {
     models: [],
     denUpgrades: [],
     characterGroupId: CHARACTER_GROUP_ID,
+    entryLinkTargets: new Map(),
   };
 }
 
