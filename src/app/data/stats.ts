@@ -111,8 +111,24 @@ function effectFromLink(index: CatalogueIndex, link: BsInfoLink): string {
   return profile ? effectFromProfile(profile) : '';
 }
 
+function isAbilityProfile(index: CatalogueIndex, link: BsInfoLink): boolean {
+  return index.profiles.get(link.targetId)?.typeName === 'Ability';
+}
+
 function effectFromEntry(index: CatalogueIndex, entry: BsSelectionEntry): string {
+  const matching = entry.infoLinks.find(
+    (link) => !link.hidden && link.name.toLowerCase() === entry.name.toLowerCase(),
+  );
+  if (matching) {
+    const text = effectFromLink(index, matching);
+    if (text) {
+      return text;
+    }
+  }
   for (const link of entry.infoLinks) {
+    if (link.hidden || isAbilityProfile(index, link)) {
+      continue;
+    }
     const text = effectFromLink(index, link);
     if (text) {
       return text;
@@ -307,6 +323,21 @@ export function startingSkills(index: CatalogueIndex, entry: BsSelectionEntry): 
   return startingSkillDetails(index, entry).map((s) => s.name);
 }
 
+function abilitySkillsFromEntry(index: CatalogueIndex, entry: BsSelectionEntry): RosterSkill[] {
+  const skills: RosterSkill[] = [];
+  for (const link of entry.infoLinks) {
+    if (link.hidden || !isAbilityProfile(index, link)) {
+      continue;
+    }
+    const name = formatInfoLinkName(index, link);
+    if (!name) {
+      continue;
+    }
+    skills.push({ name, effect: skillEffect(index, name, undefined, link) });
+  }
+  return skills;
+}
+
 function pushUniqueSkill(list: RosterSkill[], seen: Set<string>, skill: RosterSkill): void {
   const key = skill.name.toLowerCase();
   if (!skill.name || seen.has(key)) {
@@ -345,6 +376,11 @@ export function modelSkills(index: CatalogueIndex, model: RosterModel): RosterSk
           name: sel.name,
           effect: skillEffect(index, sel.name, selEntry),
         });
+        if (selEntry) {
+          for (const extra of abilitySkillsFromEntry(index, selEntry)) {
+            pushUniqueSkill(skills, seenSkills, extra);
+          }
+        }
       }
       visit(sel.children, name);
     }
