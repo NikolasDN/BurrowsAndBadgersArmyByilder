@@ -29,8 +29,7 @@
                 [class.on]="isSelected(entry.id)"
                 [disabled]="!canSelect(entry)"
                 (click)="toggle(entry)"
-                (mouseenter)="hintFor = entry.id"
-                (mouseleave)="hintFor = null"
+                [attr.title]="hint(entry) || null"
               >
                 <span class="check">{{ isSelected(entry.id) ? '✓' : '' }}</span>
                 <span class="name">{{ entry.name }}</span>
@@ -48,9 +47,6 @@
                     [startOpen]="true"
                   />
                 }
-              }
-              @if (hintFor === entry.id && hint(entry)) {
-                <p class="hint">{{ hint(entry) }}</p>
               }
             </li>
           }
