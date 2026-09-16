@@ -36,7 +36,6 @@ export class OptionGroupComponent implements OnInit {
 
   open = false;
   query = '';
-  hintFor: string | null = null;
 
   ngOnInit(): void {
     if (this.startOpen) {
