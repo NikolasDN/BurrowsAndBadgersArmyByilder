@@ -47,12 +47,38 @@
       </div>
       <div class="equip">
         <label>Equipment</label>
-        <div><span>Weapon 1</span><b>{{ weapons[0] }}</b></div>
-        <div><span>Weapon 2</span><b>{{ weapons[1] }}</b></div>
-        <div><span>Armour 1</span><b>{{ armour[0] }}</b></div>
-        <div><span>Armour 2</span><b>{{ armour[1] }}</b></div>
-        <div><span>Item</span><b>{{ items.join(', ') }}</b></div>
-        <div><span>Special</span><b>{{ special.join(', ') }}</b></div>
+        <div class="slot">
+          <span>Weapon 1</span>
+          <p>{{ weapons[0] }}</p>
+        </div>
+        <div class="slot">
+          <span>Weapon 2</span>
+          <p>{{ weapons[1] }}</p>
+        </div>
+        <div class="slot">
+          <span>Armour 1</span>
+          <p>{{ armour[0] }}</p>
+        </div>
+        <div class="slot">
+          <span>Armour 2</span>
+          <p>{{ armour[1] }}</p>
+        </div>
+        <div class="slot">
+          <span>Item</span>
+          <div class="stack">
+            @for (item of items; track $index) {
+              <p>{{ item }}</p>
+            }
+          </div>
+        </div>
+        <div class="slot">
+          <span>Special</span>
+          <div class="stack">
+            @for (item of special; track $index) {
+              <p>{{ item }}</p>
+            }
+          </div>
+        </div>
       </div>
     </div>
   </div>
