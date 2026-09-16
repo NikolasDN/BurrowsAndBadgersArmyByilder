@@ -15,8 +15,7 @@ import {
   resolveEntryChildren,
   resolveGroupChildren,
 } from '../../data/modifiers';
-import { lookupProfileText } from '../../data/stats';
-import { pennyCost } from '../../data/xml-parser';
+import { effectivePennyCost, lookupProfileText } from '../../data/stats';
 
 @Component({
   selector: 'app-option-group',
@@ -113,7 +112,7 @@ export class OptionGroupComponent implements OnInit {
   }
 
   costOf(entry: BsSelectionEntry): number {
-    return pennyCost(entry);
+    return effectivePennyCost(entry, this.ctx);
   }
 
   hint(entry: BsSelectionEntry): string {

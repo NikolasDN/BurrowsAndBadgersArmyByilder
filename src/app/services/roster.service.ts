@@ -28,7 +28,7 @@ export class RosterService {
     if (!wb || !this.catalogue.ready()) {
       return 0;
     }
-    return computeWarbandPennies(this.catalogue.getIndex(), wb.models);
+    return computeWarbandPennies(this.catalogue.getIndex(), wb.models, (m) => this.ctx(m));
   });
 
   readonly rating = computed(() => {
@@ -236,7 +236,7 @@ export class RosterService {
     if (!this.catalogue.ready()) {
       return 0;
     }
-    return computeModelPennies(this.catalogue.getIndex(), model);
+    return computeModelPennies(this.catalogue.getIndex(), model, this.ctx(model));
   }
 
   modelStats(model: RosterModel) {

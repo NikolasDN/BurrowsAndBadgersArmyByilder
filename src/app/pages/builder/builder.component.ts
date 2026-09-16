@@ -5,8 +5,8 @@ import { CatalogueService } from '../../services/catalogue.service';
 import { RosterService } from '../../services/roster.service';
 import { ModelCardComponent } from '../../components/model-card/model-card.component';
 import { BsSelectionEntry } from '../../models/battlescribe';
-import { pennyCost, laborCost, materialCost } from '../../data/xml-parser';
-import { computeStats, startingSkills } from '../../data/stats';
+import { laborCost, materialCost } from '../../data/xml-parser';
+import { computeStats, effectivePennyCost, startingSkills } from '../../data/stats';
 
 @Component({
   selector: 'app-builder',
@@ -89,7 +89,7 @@ export class BuilderComponent implements OnInit {
   }
 
   cost(entry: BsSelectionEntry): number {
-    return pennyCost(entry);
+    return effectivePennyCost(entry, this.roster.ctx());
   }
 
   laborOf(entry: BsSelectionEntry): number {

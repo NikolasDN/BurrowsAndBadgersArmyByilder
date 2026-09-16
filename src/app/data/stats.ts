@@ -3,6 +3,7 @@ import {
   BsModifier,
   BsSelectionEntry,
   CatalogueIndex,
+  COST_PENNY,
   STAT_IDS,
   UNIT_PROFILE_TYPE,
 } from '../models/battlescribe';
@@ -59,20 +60,82 @@ export function computeStats(
   return stats;
 }
 
-export function computeModelPennies(index: CatalogueIndex, model: RosterModel): number {
+function isPennyField(field: string, entry: BsSelectionEntry): boolean {
+  if (field === COST_PENNY) {
+    return true;
+  }
+  return entry.costs.some((c) => c.name === 'Penny' && c.typeId === field);
+}
+
+function isCostChild(entry: BsSelectionEntry): boolean {
+  return /^(?:Variable\s+)?Cost\b/i.test(entry.name);
+}
+
+function modifiedDefaultAmount(entry: BsSelectionEntry, ctx: EvalContext): number {
+  let amount = entry.defaultAmount;
+  for (const mod of entry.modifiers) {
+    if (mod.field !== 'defaultAmount' || !modifierActive(mod, ctx)) {
+      continue;
+    }
+    const n = Number(mod.value);
+    if (!Number.isFinite(n)) {
+      continue;
+    }
+    if (mod.type === 'set') {
+      amount = n;
+    } else if (mod.type === 'increment') {
+      amount += n;
+    }
+  }
+  return amount;
+}
+
+/** Base penny cost plus catalogue modifiers used by rare starting gear and characters. */
+export function effectivePennyCost(entry: BsSelectionEntry, ctx?: EvalContext): number {
+  let cost = pennyCost(entry);
+  if (!ctx) {
+    return cost;
+  }
+  for (const mod of entry.modifiers) {
+    if (!isPennyField(mod.field, entry) || !modifierActive(mod, ctx)) {
+      continue;
+    }
+    const n = Number(mod.value);
+    if (!Number.isFinite(n)) {
+      continue;
+    }
+    if (mod.type === 'set') {
+      cost = n;
+    } else if (mod.type === 'increment') {
+      cost += n;
+    }
+  }
+  for (const child of entry.selectionEntries) {
+    if (isCostChild(child)) {
+      cost += modifiedDefaultAmount(child, ctx);
+    }
+  }
+  return cost;
+}
+
+export function computeModelPennies(index: CatalogueIndex, model: RosterModel, ctx?: EvalContext): number {
   const entry = index.entries.get(model.entryId);
-  let total = entry ? pennyCost(entry) : 0;
+  let total = entry ? effectivePennyCost(entry, ctx) : 0;
   for (const sel of collectSelections(model.selections)) {
     const selEntry = index.entries.get(sel.entryId);
     if (selEntry) {
-      total += pennyCost(selEntry);
+      total += effectivePennyCost(selEntry, ctx);
     }
   }
   return total;
 }
 
-export function computeWarbandPennies(index: CatalogueIndex, models: RosterModel[]): number {
-  return models.reduce((sum, m) => sum + computeModelPennies(index, m), 0);
+export function computeWarbandPennies(
+  index: CatalogueIndex,
+  models: RosterModel[],
+  ctxFactory?: (m: RosterModel) => EvalContext,
+): number {
+  return models.reduce((sum, m) => sum + computeModelPennies(index, m, ctxFactory?.(m)), 0);
 }
 
 export function computeRating(index: CatalogueIndex, models: RosterModel[], ctxFactory: (m: RosterModel) => EvalContext): number {

@@ -1,4 +1,4 @@
-import { computeModelPennies, computeStats, equipmentBuckets, printEquipmentBuckets, printGearLine, printSkillLine, printSkillLines, startingSkills } from './stats';
+import { computeModelPennies, computeStats, effectivePennyCost, equipmentBuckets, printEquipmentBuckets, printGearLine, printSkillLine, printSkillLines, startingSkills } from './stats';
 import { parseGameSystem, finalizeIndex } from './xml-parser';
 import { Warband, RosterModel } from '../models/roster';
 
@@ -65,6 +65,143 @@ describe('stats', () => {
     const stats = computeStats(index, model, { warband, model });
     expect(stats.Strike).toBe('d6');
     expect(stats.Level).toBe('1');
+  });
+
+  it('shows and totals rare starting equipment from nested Cost defaultAmount', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedSelectionEntries>
+    <selectionEntry id="mouse" name="Mouse" type="model" hidden="false">
+      <costs><cost name="Penny" typeId="penny" value="24"/></costs>
+    </selectionEntry>
+    <selectionEntry id="warbow" name="War Bow" type="upgrade" hidden="false">
+      <costs><cost name="Penny" typeId="penny" value="0"/></costs>
+      <selectionEntries>
+        <selectionEntry id="warbow-cost" name="Cost (3d6+8)" type="upgrade" hidden="false">
+          <modifiers>
+            <modifier type="set" value="20" field="defaultAmount">
+              <conditions>
+                <condition type="atLeast" value="1" field="selections" scope="roster" childId="kindred" shared="true"/>
+              </conditions>
+            </modifier>
+            <modifier type="set" value="25" field="defaultAmount">
+              <conditions>
+                <condition type="atLeast" value="1" field="selections" scope="roster" childId="rogues" shared="true"/>
+              </conditions>
+            </modifier>
+          </modifiers>
+        </selectionEntry>
+      </selectionEntries>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const bow = index.entries.get('warbow')!;
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mouse',
+      name: 'Pip',
+      species: 'Mouse',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'warbow', groupId: 'w', name: 'War Bow', children: [] },
+      ],
+    };
+    const kindredBand: Warband = {
+      id: 'w',
+      name: 'Band',
+      factionId: 'f',
+      factionName: 'Kindred',
+      allegianceEntryId: 'kindred',
+      archetype: 'Ranger',
+      notes: '',
+      treasury: 0,
+      labour: 0,
+      materials: 0,
+      pension: 0,
+      pennyLimit: 350,
+      stashedEquipment: '',
+      denUpgradeIds: [],
+      models: [model],
+      updatedAt: '',
+    };
+    const ctx = { warband: kindredBand, model };
+    expect(effectivePennyCost(bow, ctx)).toBe(20);
+    expect(computeModelPennies(index, model, ctx)).toBe(44);
+
+    const undeadBand = { ...kindredBand, allegianceEntryId: 'undead' };
+    expect(effectivePennyCost(bow, { warband: undeadBand, model })).toBe(0);
+    expect(effectivePennyCost(bow, { warband: { ...kindredBand, allegianceEntryId: 'rogues' }, model })).toBe(25);
+  });
+
+  it('reads Variable Cost defaultAmount used by Arcane Conclave talismans', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedSelectionEntries>
+    <selectionEntry id="shield" name="Shielding Talisman" type="upgrade" hidden="false">
+      <costs><cost name="Penny" typeId="penny" value="0"/></costs>
+      <selectionEntries>
+        <selectionEntry id="shield-cost" name="Variable Cost (1d6+3)" type="upgrade" hidden="false">
+          <modifiers>
+            <modifier type="set" value="10" field="defaultAmount">
+              <conditions>
+                <condition type="atLeast" value="1" field="selections" scope="roster" childId="arcane" shared="true"/>
+              </conditions>
+            </modifier>
+          </modifiers>
+        </selectionEntry>
+      </selectionEntries>
+    </selectionEntry>
+    <selectionEntry id="mirror" name="Mirroring Talisman" type="upgrade" hidden="false">
+      <costs><cost name="Penny" typeId="penny" value="0"/></costs>
+      <selectionEntries>
+        <selectionEntry id="mirror-cost" name="Variable Cost (1d6+6)" type="upgrade" hidden="false">
+          <modifiers>
+            <modifier type="set" value="13" field="defaultAmount">
+              <conditions>
+                <condition type="atLeast" value="1" field="selections" scope="roster" childId="arcane" shared="true"/>
+              </conditions>
+            </modifier>
+          </modifiers>
+        </selectionEntry>
+      </selectionEntries>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mouse',
+      name: 'Pip',
+      species: 'Mouse',
+      fate: 0,
+      exp: 0,
+      selections: [],
+    };
+    const ctx = {
+      warband: {
+        id: 'w',
+        name: 'Band',
+        factionId: 'f',
+        factionName: 'Arcane Conclave',
+        allegianceEntryId: 'arcane',
+        archetype: 'Cunning Folk',
+        notes: '',
+        treasury: 0,
+        labour: 0,
+        materials: 0,
+        pension: 0,
+        pennyLimit: 350,
+        stashedEquipment: '',
+        denUpgradeIds: [],
+        models: [model],
+        updatedAt: '',
+      },
+      model,
+    };
+    expect(effectivePennyCost(index.entries.get('shield')!, ctx)).toBe(10);
+    expect(effectivePennyCost(index.entries.get('mirror')!, ctx)).toBe(13);
   });
 
   it('lists innate starting skills from model info links', () => {
