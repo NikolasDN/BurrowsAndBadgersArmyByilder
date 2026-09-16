@@ -141,7 +141,7 @@ export function selectionLimits(node: {
   return { local, roster };
 }
 
-function walkSelections(
+function forEachSelection(
   sels: RosterSelection[],
   includeChildren: boolean,
   visit: (sel: RosterSelection) => void,
@@ -149,7 +149,7 @@ function walkSelections(
   for (const s of sels) {
     visit(s);
     if (includeChildren) {
-      walkSelections(s.children, true, visit);
+      forEachSelection(s.children, true, visit);
     }
   }
 }
@@ -160,7 +160,7 @@ export function rosterSelectionCount(
 ): number {
   let n = 0;
   for (const model of warband.models) {
-    walkSelections(model.selections, true, (sel) => {
+    forEachSelection(model.selections, true, (sel) => {
       if (match(sel)) {
         n += 1;
       }
