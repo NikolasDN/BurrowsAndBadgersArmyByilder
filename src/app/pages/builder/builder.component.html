@@ -82,7 +82,12 @@
           @for (model of group.models; track model.id) {
             <li>
               <button type="button" (click)="add(model.id)">
-                <strong>{{ model.name }}</strong>
+                <span class="pick-main">
+                  <strong>{{ model.name }}</strong>
+                  @if (skillsOf(model).length) {
+                    <small>{{ skillsOf(model).join(', ') }}</small>
+                  }
+                </span>
                 <span>{{ cost(model) }}p · {{ statsPreview(model).Level }} lvl · {{ statsPreview(model).Movement }} move</span>
               </button>
             </li>

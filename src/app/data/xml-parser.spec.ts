@@ -17,6 +17,13 @@ const GST = `<?xml version="1.0" encoding="UTF-8"?>
       <categoryLinks>
         <categoryLink name="Small Beast (30mm Base)" hidden="false" id="cl1" targetId="small" primary="true"/>
       </categoryLinks>
+      <infoLinks>
+        <infoLink hidden="false" id="il-flight" name="Flight" targetId="flight" type="rule">
+          <modifiers>
+            <modifier type="set" value="1" field="annotation"/>
+          </modifiers>
+        </infoLink>
+      </infoLinks>
       <profiles>
         <profile id="p1" name="Mouse" hidden="false" typeId="unit" typeName="Unit">
           <characteristics>
@@ -64,6 +71,9 @@ describe('xml-parser', () => {
     expect(index.factions[0].allegianceEntryId).toBe('alg-1');
     expect(index.factions[0].rules[0].description).toContain('heavy armour');
     expect(index.profiles.get('p1')?.characteristics[0].value).toBe('d6');
+    expect(index.models[0].infoLinks[0].modifiers).toEqual([
+      jasmine.objectContaining({ type: 'set', value: '1', field: 'annotation' }),
+    ]);
   });
 
   it('keeps allegiance ids unique across catalogues', () => {

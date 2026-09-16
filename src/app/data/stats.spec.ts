@@ -1,4 +1,4 @@
-import { computeModelPennies, computeStats } from './stats';
+import { computeModelPennies, computeStats, equipmentBuckets, startingSkills } from './stats';
 import { parseGameSystem, finalizeIndex } from './xml-parser';
 import { Warband, RosterModel } from '../models/roster';
 
@@ -65,5 +65,60 @@ describe('stats', () => {
     const stats = computeStats(index, model, { warband, model });
     expect(stats.Strike).toBe('d6');
     expect(stats.Level).toBe('1');
+  });
+
+  it('lists innate starting skills from model info links', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedRules>
+    <rule hidden="false" id="flight" name="Flight"><description>Fly.</description></rule>
+    <rule hidden="false" id="delicate" name="Delicate (X)"><description>Fragile.</description></rule>
+  </sharedRules>
+  <sharedProfiles>
+    <profile id="strong" name="Strong" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect" typeId="e">Adds Strong.</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup id="innate" name="Innate Skills" hidden="false"/>
+  </sharedSelectionEntryGroups>
+  <sharedSelectionEntries>
+    <selectionEntry id="mole" name="Mole" type="model" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il1" name="Flight" targetId="flight" type="rule"/>
+        <infoLink hidden="false" id="il2" name="Strong" targetId="strong" type="profile">
+          <modifiers>
+            <modifier type="set" value="1" field="annotation"/>
+          </modifiers>
+        </infoLink>
+        <infoLink hidden="false" id="il3" name="Delicate (X)" targetId="delicate" type="rule">
+          <modifiers>
+            <modifier arg="(X)" field="name" type="replace" value="2"/>
+          </modifiers>
+        </infoLink>
+        <infoLink hidden="true" id="il4" name="Hidden Skill" targetId="flight" type="rule"/>
+      </infoLinks>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const mole = index.entries.get('mole')!;
+    expect(startingSkills(index, mole)).toEqual(['Flight', 'Strong (1)', 'Delicate (2)']);
+
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mole',
+      name: 'Diggory',
+      species: 'Mole',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'flight-pick', groupId: 'innate', name: 'Flight', children: [] },
+        { instanceId: 's2', entryId: 'swim', groupId: 'innate', name: 'Swim', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, model).skills).toEqual(['Flight', 'Strong (1)', 'Delicate (2)', 'Swim']);
   });
 });
