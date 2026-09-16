@@ -134,6 +134,79 @@ describe('stats', () => {
     ).toBe('Flight (The model may move by flying.)');
   });
 
+  it('stacks weak and delicate by selected spell count', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedRules>
+    <rule hidden="false" id="weak" name="Weak (X)"><description>Add the level to cast roll-offs.</description></rule>
+    <rule hidden="false" id="delicate" name="Delicate (X)"><description>Add the level to wounds suffered.</description></rule>
+  </sharedRules>
+  <sharedProfiles>
+    <profile id="spell-haste" name="Haste" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect" typeId="e">Gain +2 Move.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="spell-curse" name="Curse" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect" typeId="e">Target gets -1 Strike.</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup id="spell-group" name="Natural Spells" hidden="false"/>
+  </sharedSelectionEntryGroups>
+  <sharedSelectionEntries>
+    <selectionEntry id="mole" name="Mole" type="model" hidden="false"/>
+    <selectionEntry id="haste" name="Haste" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="l1" name="Haste" targetId="spell-haste" type="profile"/>
+        <infoLink hidden="false" id="l2" name="Weak" targetId="weak" type="rule"/>
+        <infoLink hidden="false" id="l3" name="Delicate" targetId="delicate" type="rule"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="curse" name="Curse" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="l4" name="Curse" targetId="spell-curse" type="profile"/>
+        <infoLink hidden="false" id="l5" name="Weak" targetId="weak" type="rule"/>
+        <infoLink hidden="false" id="l6" name="Delicate" targetId="delicate" type="rule"/>
+      </infoLinks>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const oneSpell: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mole',
+      name: 'Diggory',
+      species: 'Mole',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'haste', groupId: 'spell-group', name: 'Haste', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, oneSpell).skills).toEqual([
+      'Haste',
+      'Weak (1)',
+      'Delicate (1)',
+    ]);
+
+    const twoSpells: RosterModel = {
+      ...oneSpell,
+      selections: [
+        { instanceId: 's1', entryId: 'haste', groupId: 'spell-group', name: 'Haste', children: [] },
+        { instanceId: 's2', entryId: 'curse', groupId: 'spell-group', name: 'Curse', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, twoSpells).skills).toEqual([
+      'Haste',
+      'Curse',
+      'Weak (2)',
+      'Delicate (2)',
+    ]);
+  });
+
   it('prints weapon, armour, and item rules in parentheses', () => {
     const gst = `<?xml version="1.0" encoding="UTF-8"?>
 <gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
@@ -242,5 +315,108 @@ describe('stats', () => {
         effect: 'Adds +1 to Strike rolls.',
       }),
     ).toBe('Spear (Adds +1 to Strike rolls.)');
+  });
+
+  it('adds Ability profiles linked from a taken spell', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedProfiles>
+    <profile id="haste" name="Haste" hidden="false" typeName="Spell">
+      <characteristics>
+        <characteristic name="Effect">The target may make an extra Move Action.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="curse" name="Curse" hidden="false" typeName="Spell">
+      <characteristics>
+        <characteristic name="Effect">The target suffers a penalty.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="blessing" name="Blessing" hidden="false" typeName="Spell">
+      <characteristics>
+        <characteristic name="Effect">The target gains a bonus.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="marsh" name="The Marsh" hidden="false" typeName="Spell">
+      <characteristics>
+        <characteristic name="Effect">The ground turns to marsh.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="weak" name="Weak" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect">This model is feeble and lacking strength.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="delicate" name="Delicate" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect">This model has a weak constitution.</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup id="natural-spells" name="Natural Spells" hidden="false"/>
+    <selectionEntryGroup id="divine-spells" name="Divine Spells" hidden="false"/>
+  </sharedSelectionEntryGroups>
+  <sharedSelectionEntries>
+    <selectionEntry id="mouse" name="Mouse" type="model" hidden="false"/>
+    <selectionEntry id="haste" name="Haste" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-h" name="Haste" targetId="haste" type="profile"/>
+        <infoLink hidden="false" id="il-w" name="Weak" targetId="weak" type="profile"/>
+        <infoLink hidden="false" id="il-d" name="Delicate" targetId="delicate" type="profile"/>
+        <infoLink hidden="true" id="il-hidden" name="Hidden Ability" targetId="weak" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="curse" name="Curse" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-c" name="Curse" targetId="curse" type="profile"/>
+        <infoLink hidden="false" id="il-w2" name="Weak" targetId="weak" type="profile"/>
+        <infoLink hidden="false" id="il-d2" name="Delicate" targetId="delicate" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="blessing" name="Blessing" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-b" name="Blessing" targetId="blessing" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="marsh" name="The Marsh" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-md" name="Delicate" targetId="delicate" type="profile"/>
+        <infoLink hidden="false" id="il-mw" name="Weak" targetId="weak" type="profile"/>
+        <infoLink hidden="false" id="il-m" name="The Marsh" targetId="marsh" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mouse',
+      name: 'Pip',
+      species: 'Mouse',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'haste', groupId: 'natural-spells', name: 'Haste', children: [] },
+        { instanceId: 's2', entryId: 'curse', groupId: 'natural-spells', name: 'Curse', children: [] },
+        { instanceId: 's3', entryId: 'blessing', groupId: 'divine-spells', name: 'Blessing', children: [] },
+        { instanceId: 's4', entryId: 'marsh', groupId: 'natural-spells', name: 'The Marsh', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, model).skills).toEqual([
+      'Haste',
+      'Curse',
+      'Blessing',
+      'The Marsh',
+      'Weak (3)',
+      'Delicate (3)',
+    ]);
+    expect(printSkillLines(index, model)).toEqual([
+      'Haste (The target may make an extra Move Action.)',
+      'Curse (The target suffers a penalty.)',
+      'Blessing (The target gains a bonus.)',
+      'The Marsh (The ground turns to marsh.)',
+      'Weak (3) (This model is feeble and lacking strength.)',
+      'Delicate (3) (This model has a weak constitution.)',
+    ]);
   });
 });
