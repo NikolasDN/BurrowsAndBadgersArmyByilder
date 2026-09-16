@@ -134,6 +134,79 @@ describe('stats', () => {
     ).toBe('Flight (The model may move by flying.)');
   });
 
+  it('stacks weak and delicate by selected spell count', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedRules>
+    <rule hidden="false" id="weak" name="Weak (X)"><description>Add the level to cast roll-offs.</description></rule>
+    <rule hidden="false" id="delicate" name="Delicate (X)"><description>Add the level to wounds suffered.</description></rule>
+  </sharedRules>
+  <sharedProfiles>
+    <profile id="spell-haste" name="Haste" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect" typeId="e">Gain +2 Move.</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="spell-curse" name="Curse" hidden="false" typeName="Ability">
+      <characteristics>
+        <characteristic name="Effect" typeId="e">Target gets -1 Strike.</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup id="spell-group" name="Natural Spells" hidden="false"/>
+  </sharedSelectionEntryGroups>
+  <sharedSelectionEntries>
+    <selectionEntry id="mole" name="Mole" type="model" hidden="false"/>
+    <selectionEntry id="haste" name="Haste" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="l1" name="Haste" targetId="spell-haste" type="profile"/>
+        <infoLink hidden="false" id="l2" name="Weak" targetId="weak" type="rule"/>
+        <infoLink hidden="false" id="l3" name="Delicate" targetId="delicate" type="rule"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="curse" name="Curse" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="l4" name="Curse" targetId="spell-curse" type="profile"/>
+        <infoLink hidden="false" id="l5" name="Weak" targetId="weak" type="rule"/>
+        <infoLink hidden="false" id="l6" name="Delicate" targetId="delicate" type="rule"/>
+      </infoLinks>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const oneSpell: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mole',
+      name: 'Diggory',
+      species: 'Mole',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'haste', groupId: 'spell-group', name: 'Haste', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, oneSpell).skills).toEqual([
+      'Haste',
+      'Weak (1)',
+      'Delicate (1)',
+    ]);
+
+    const twoSpells: RosterModel = {
+      ...oneSpell,
+      selections: [
+        { instanceId: 's1', entryId: 'haste', groupId: 'spell-group', name: 'Haste', children: [] },
+        { instanceId: 's2', entryId: 'curse', groupId: 'spell-group', name: 'Curse', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, twoSpells).skills).toEqual([
+      'Haste',
+      'Curse',
+      'Weak (2)',
+      'Delicate (2)',
+    ]);
+  });
+
   it('prints weapon, armour, and item rules in parentheses', () => {
     const gst = `<?xml version="1.0" encoding="UTF-8"?>
 <gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
@@ -331,19 +404,19 @@ describe('stats', () => {
     };
     expect(equipmentBuckets(index, model).skills).toEqual([
       'Haste',
-      'Weak',
-      'Delicate',
       'Curse',
       'Blessing',
       'The Marsh',
+      'Weak (3)',
+      'Delicate (3)',
     ]);
     expect(printSkillLines(index, model)).toEqual([
       'Haste (The target may make an extra Move Action.)',
-      'Weak (This model is feeble and lacking strength.)',
-      'Delicate (This model has a weak constitution.)',
       'Curse (The target suffers a penalty.)',
       'Blessing (The target gains a bonus.)',
       'The Marsh (The ground turns to marsh.)',
+      'Weak (3) (This model is feeble and lacking strength.)',
+      'Delicate (3) (This model has a weak constitution.)',
     ]);
   });
 });

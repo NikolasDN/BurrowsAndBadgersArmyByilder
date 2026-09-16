@@ -330,7 +330,7 @@ function abilitySkillsFromEntry(index: CatalogueIndex, entry: BsSelectionEntry):
       continue;
     }
     const name = formatInfoLinkName(index, link);
-    if (!name) {
+    if (!name || ['weak', 'delicate'].includes(name.toLowerCase())) {
       continue;
     }
     skills.push({ name, effect: skillEffect(index, name, undefined, link) });
@@ -347,9 +347,67 @@ function pushUniqueSkill(list: RosterSkill[], seen: Set<string>, skill: RosterSk
   list.push(skill);
 }
 
+function parseStackedSkillCount(name: string, skillName: string): number | null {
+  const match = name.match(new RegExp(`^${skillName}\\s*(?:\\(([^)]*)\\))?$`, 'i'));
+  if (!match) {
+    return null;
+  }
+  const raw = match[1]?.trim();
+  if (!raw) {
+    return 1;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function stackSkillCount(
+  index: CatalogueIndex,
+  skills: RosterSkill[],
+  skillName: string,
+  extraCount: number,
+): RosterSkill[] {
+  if (extraCount <= 0 && !skills.some((skill) => parseStackedSkillCount(skill.name, skillName) !== null)) {
+    return skills;
+  }
+  let firstIndex = -1;
+  let total = extraCount;
+  let effect = '';
+  const filtered = skills.filter((skill, indexInList) => {
+    const count = parseStackedSkillCount(skill.name, skillName);
+    if (count === null) {
+      return true;
+    }
+    if (firstIndex < 0) {
+      firstIndex = indexInList;
+    }
+    total += count;
+    if (!effect && skill.effect) {
+      effect = skill.effect;
+    }
+    return false;
+  });
+  if (total <= 0) {
+    return filtered;
+  }
+  const nextSkill: RosterSkill = {
+    name: `${skillName} (${total})`,
+    effect: effect || skillEffect(index, skillName),
+  };
+  if (firstIndex < 0 || firstIndex >= filtered.length) {
+    return [...filtered, nextSkill];
+  }
+  return [
+    ...filtered.slice(0, firstIndex),
+    nextSkill,
+    ...filtered.slice(firstIndex),
+  ];
+}
+
 export function modelSkills(index: CatalogueIndex, model: RosterModel): RosterSkill[] {
   const skills: RosterSkill[] = [];
   const seenSkills = new Set<string>();
+  let weakFromSpells = 0;
+  let delicateFromSpells = 0;
   const entry = index.entries.get(model.entryId);
   if (entry) {
     for (const skill of startingSkillDetails(index, entry)) {
@@ -381,12 +439,31 @@ export function modelSkills(index: CatalogueIndex, model: RosterModel): RosterSk
             pushUniqueSkill(skills, seenSkills, extra);
           }
         }
+        if (selEntry && lower.includes('spell')) {
+          for (const link of selEntry.infoLinks) {
+            if (link.hidden) {
+              continue;
+            }
+            const target = index.rules.get(link.targetId) ?? index.profiles.get(link.targetId);
+            const linkName = (link.name || target?.name || '').toLowerCase();
+            if (linkName.startsWith('weak')) {
+              weakFromSpells += 1;
+            } else if (linkName.startsWith('delicate')) {
+              delicateFromSpells += 1;
+            }
+          }
+        }
       }
       visit(sel.children, name);
     }
   };
   visit(model.selections, '');
-  return skills;
+  return stackSkillCount(
+    index,
+    stackSkillCount(index, skills, 'Weak', weakFromSpells),
+    'Delicate',
+    delicateFromSpells,
+  );
 }
 
 export function printSkillLines(index: CatalogueIndex, model: RosterModel): string[] {
