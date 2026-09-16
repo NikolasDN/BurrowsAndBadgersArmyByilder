@@ -219,11 +219,11 @@ describe('magical archetypes', () => {
   }
 
   it('keeps Natural hidden for a starting Kindred-less band', () => {
-    expect(isHidden(natural, ctxFor('undead-entry'))).toBeTrue();
+    expect(isHidden(natural, ctxFor('undead-entry'))).toBe(true);
   });
 
   it('unhides Natural for a starting Kindred band so its spell list can be chosen', () => {
-    expect(isHidden(natural, ctxFor('kindred-entry'))).toBeFalse();
+    expect(isHidden(natural, ctxFor('kindred-entry'))).toBe(false);
     const { groups, entries } = resolveEntryChildren(natural, index.entries, index.groups);
     expect(groups.map((g) => g.name)).toEqual(['Natural Spells']);
     expect(groups[0].selectionEntries.map((e) => e.name)).toEqual(['Haste', 'Curse']);
@@ -231,11 +231,11 @@ describe('magical archetypes', () => {
   });
 
   it('unhides Natural when the catalogue condition uses the allegiance entryLink id', () => {
-    expect(isHidden(natural, ctxFor('royal-entry'))).toBeTrue();
-    expect(isHidden(natural, ctxFor('royal-entry', ['royal-link']))).toBeFalse();
+    expect(isHidden(natural, ctxFor('royal-entry'))).toBe(true);
+    expect(isHidden(natural, ctxFor('royal-entry', ['royal-link']))).toBe(false);
   });
 
   it('does not offer Necromancy spells to a starting Kindred magic-user', () => {
-    expect(isHidden(necromancy, ctxFor('kindred-entry'))).toBeTrue();
+    expect(isHidden(necromancy, ctxFor('kindred-entry'))).toBe(true);
   });
 });

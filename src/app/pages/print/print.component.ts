@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CatalogueService } from '../../services/catalogue.service';
 import { RosterService } from '../../services/roster.service';
@@ -20,6 +20,7 @@ export interface PrintBeast {
   selector: 'app-print',
   imports: [RouterLink, PrintBeastComponent],
   templateUrl: './print.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './print.component.scss',
 })
 export class PrintComponent implements OnInit {

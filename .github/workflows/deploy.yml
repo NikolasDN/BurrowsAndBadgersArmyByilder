@@ -24,7 +24,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Unit tests
-        run: npm test -- --no-watch --no-progress --browsers=ChromeHeadlessNoSandbox
+        run: npm test
       - name: Production build
         run: npm run build -- --configuration production --base-href /BurrowsAndBadgersArmyByilder/
       - name: Deploy to GitHub Pages

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogueService } from '../../services/catalogue.service';
@@ -12,6 +12,7 @@ import { computeStats, startingSkills } from '../../data/stats';
   selector: 'app-builder',
   imports: [FormsModule, RouterLink, ModelCardComponent],
   templateUrl: './builder.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './builder.component.scss',
 })
 export class BuilderComponent implements OnInit {
