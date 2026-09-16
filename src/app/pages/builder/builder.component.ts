@@ -6,7 +6,7 @@ import { RosterService } from '../../services/roster.service';
 import { ModelCardComponent } from '../../components/model-card/model-card.component';
 import { BsSelectionEntry } from '../../models/battlescribe';
 import { pennyCost, laborCost, materialCost } from '../../data/xml-parser';
-import { computeStats } from '../../data/stats';
+import { computeStats, startingSkills } from '../../data/stats';
 
 @Component({
   selector: 'app-builder',
@@ -41,9 +41,18 @@ export class BuilderComponent implements OnInit {
 
   get modelGroups() {
     const q = this.query.trim().toLowerCase();
+    const index = this.catalogue.getIndex();
     return this.catalogue.modelsBySize().map((group) => ({
       ...group,
-      models: group.models.filter((m) => !q || m.name.toLowerCase().includes(q)),
+      models: group.models.filter((m) => {
+        if (!q) {
+          return true;
+        }
+        if (m.name.toLowerCase().includes(q)) {
+          return true;
+        }
+        return startingSkills(index, m).some((skill) => skill.toLowerCase().includes(q));
+      }),
     })).filter((g) => g.models.length);
   }
 
@@ -101,6 +110,10 @@ export class BuilderComponent implements OnInit {
       selections: [],
     };
     return computeStats(this.catalogue.getIndex(), fake, this.roster.ctx());
+  }
+
+  skillsOf(entry: BsSelectionEntry): string[] {
+    return startingSkills(this.catalogue.getIndex(), entry);
   }
 
   add(entryId: string): void {

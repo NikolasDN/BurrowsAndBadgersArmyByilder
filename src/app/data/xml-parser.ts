@@ -126,6 +126,7 @@ function parseInfoLinks(el: Element): BsInfoLink[] {
     hidden: boolAttr(c, 'hidden'),
     type: attr(c, 'type'),
     targetId: attr(c, 'targetId'),
+    modifiers: parseModifiers(c),
   }));
 }
 

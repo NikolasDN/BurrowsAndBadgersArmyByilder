@@ -1,4 +1,5 @@
 import {
+  BsInfoLink,
   BsModifier,
   BsSelectionEntry,
   CatalogueIndex,
@@ -81,6 +82,60 @@ export function computeRating(index: CatalogueIndex, models: RosterModel[], ctxF
   }, 0);
 }
 
+function formatInfoLinkName(index: CatalogueIndex, link: BsInfoLink): string {
+  const target = index.rules.get(link.targetId) ?? index.profiles.get(link.targetId);
+  let name = link.name || target?.name || '';
+  let annotation = '';
+  for (const mod of link.modifiers) {
+    if (mod.field === 'hidden' && mod.type === 'set' && mod.value === 'true') {
+      return '';
+    }
+    if (mod.field === 'name') {
+      if (mod.type === 'set') {
+        name = mod.value;
+      } else if (mod.type === 'replace' && mod.arg && name.includes(mod.arg)) {
+        const replacement =
+          mod.arg === '(X)' && !/^\(.*\)$/.test(mod.value) ? `(${mod.value})` : mod.value;
+        name = name.split(mod.arg).join(replacement);
+      }
+    }
+    if (mod.field === 'annotation' && mod.type === 'set' && mod.value) {
+      annotation = mod.value;
+    }
+  }
+  if (annotation && !name.includes(`(${annotation})`)) {
+    name = `${name} (${annotation})`;
+  }
+  return name.trim();
+}
+
+export function startingSkills(index: CatalogueIndex, entry: BsSelectionEntry): string[] {
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const link of entry.infoLinks) {
+    if (link.hidden) {
+      continue;
+    }
+    const name = formatInfoLinkName(index, link);
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}
+
+function pushUnique(list: string[], seen: Set<string>, name: string): void {
+  const key = name.toLowerCase();
+  if (!name || seen.has(key)) {
+    return;
+  }
+  seen.add(key);
+  list.push(name);
+}
+
 export function equipmentBuckets(
   index: CatalogueIndex,
   model: RosterModel,
@@ -90,6 +145,14 @@ export function equipmentBuckets(
   const items: string[] = [];
   const special: string[] = [];
   const skills: string[] = [];
+  const seenSkills = new Set<string>();
+
+  const entry = index.entries.get(model.entryId);
+  if (entry) {
+    for (const name of startingSkills(index, entry)) {
+      pushUnique(skills, seenSkills, name);
+    }
+  }
 
   const visit = (sels: RosterSelection[], groupName: string) => {
     for (const sel of sels) {
@@ -113,7 +176,7 @@ export function equipmentBuckets(
         lower.includes('innate')
       ) {
         if (!['equipment', 'weapon slots', 'armor slots', 'items slot', 'special slot'].includes(lower)) {
-          skills.push(sel.name);
+          pushUnique(skills, seenSkills, sel.name);
         }
       }
       visit(sel.children, name);

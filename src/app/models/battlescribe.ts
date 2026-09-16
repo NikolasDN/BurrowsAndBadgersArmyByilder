@@ -44,6 +44,7 @@ export interface BsInfoLink {
   hidden: boolean;
   type: string;
   targetId: string;
+  modifiers: BsModifier[];
 }
 
 export interface BsCategoryLink {

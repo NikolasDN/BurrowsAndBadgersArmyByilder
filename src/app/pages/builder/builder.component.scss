@@ -185,6 +185,20 @@ h2 {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
   border-radius: 8px;
   text-align: left;
+}
+
+.pick-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.pick-main small {
+  color: #6b4a2b;
+  font-size: 0.78rem;
 }
