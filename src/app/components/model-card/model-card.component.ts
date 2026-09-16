@@ -4,7 +4,7 @@ import { RosterModel } from '../../models/roster';
 import { RosterService } from '../../services/roster.service';
 import { CatalogueService } from '../../services/catalogue.service';
 import { OptionGroupComponent } from '../option-group/option-group.component';
-import { isHidden, resolveGroupChildren } from '../../data/modifiers';
+import { groupHasVisibleOptions, resolveGroupChildren } from '../../data/modifiers';
 import { equipmentBuckets } from '../../data/stats';
 
 @Component({
@@ -42,7 +42,9 @@ export class ModelCardComponent {
     const index = this.catalogue.getIndex();
     const resolved = resolveGroupChildren(group, index.entries, index.groups);
     const ctx = this.roster.ctx(this.model);
-    return resolved.groups.filter((g) => !isHidden(g, ctx));
+    return resolved.groups.filter((g) =>
+      groupHasVisibleOptions(g, ctx, index.entries, index.groups),
+    );
   }
 
   get setupSelected(): boolean {

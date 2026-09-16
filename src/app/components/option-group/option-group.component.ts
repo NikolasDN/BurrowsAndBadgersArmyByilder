@@ -14,6 +14,7 @@ import {
   canAddSelection,
   resolveEntryChildren,
   resolveGroupChildren,
+  groupHasVisibleOptions,
 } from '../../data/modifiers';
 import { effectivePennyCost, lookupProfileText } from '../../data/stats';
 
@@ -59,7 +60,10 @@ export class OptionGroupComponent implements OnInit {
   }
 
   get visibleGroups(): BsSelectionEntryGroup[] {
-    return this.resolved.groups.filter((g) => !isHidden(g, this.ctx));
+    const index = this.catalogue.getIndex();
+    return this.resolved.groups.filter((g) =>
+      groupHasVisibleOptions(g, this.ctx, index.entries, index.groups),
+    );
   }
 
   get filteredEntries(): BsSelectionEntry[] {
@@ -73,7 +77,7 @@ export class OptionGroupComponent implements OnInit {
   }
 
   get hiddenByModifiers(): boolean {
-    return isHidden(this.group, this.ctx);
+    return this.visibleEntries.length === 0 && this.visibleGroups.length === 0;
   }
 
   get groupLimits() {
@@ -176,7 +180,8 @@ export class OptionGroupComponent implements OnInit {
     }
     const index = this.catalogue.getIndex();
     const { groups } = resolveEntryChildren(entry, index.entries, index.groups);
-    return groups.filter((g) => !isHidden(g, { ...this.ctx, model: this.model }));
+    const ctx = { ...this.ctx, model: this.model };
+    return groups.filter((g) => groupHasVisibleOptions(g, ctx, index.entries, index.groups));
   }
 
   selectionFor(entryId: string): RosterSelection | undefined {

@@ -242,6 +242,19 @@ export function resolveGroupChildren(
   return { entries: resultEntries, groups: resultGroups };
 }
 
+export function groupHasVisibleOptions(
+  group: BsSelectionEntryGroup,
+  ctx: EvalContext,
+  entries: Map<string, BsSelectionEntry>,
+  groups: Map<string, BsSelectionEntryGroup>,
+): boolean {
+  const resolved = resolveGroupChildren(group, entries, groups);
+  if (resolved.entries.some((e) => !isHidden(e, ctx))) {
+    return true;
+  }
+  return resolved.groups.some((g) => groupHasVisibleOptions(g, ctx, entries, groups));
+}
+
 export function resolveEntryChildren(
   entry: BsSelectionEntry,
   entries: Map<string, BsSelectionEntry>,

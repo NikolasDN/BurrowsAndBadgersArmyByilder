@@ -2,6 +2,7 @@ import { BsConstraint, BsSelectionEntry } from '../models/battlescribe';
 import { RosterModel, Warband } from '../models/roster';
 import {
   canAddSelection,
+  groupHasVisibleOptions,
   isHidden,
   resolveEntryChildren,
   rosterSelectionCount,
@@ -237,5 +238,90 @@ describe('magical archetypes', () => {
 
   it('does not offer Necromancy spells to a starting Kindred magic-user', () => {
     expect(isHidden(necromancy, ctxFor('kindred-entry'))).toBe(true);
+  });
+});
+
+const BONDED_GST = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03" revision="1">
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup name="Bonded critters" id="bonded" hidden="true">
+      <selectionEntries>
+        <selectionEntry type="upgrade" import="true" name="Cave Spider" hidden="true" id="spider">
+          <modifiers>
+            <modifier type="set" value="false" field="hidden">
+              <conditionGroups>
+                <conditionGroup type="or">
+                  <conditions>
+                    <condition type="lessThan" value="1" field="selections" scope="root-entry" childId="setup" shared="true"/>
+                    <condition type="atLeast" value="1" field="selections" scope="roster" childId="wildlings" shared="true"/>
+                    <condition type="atLeast" value="1" field="selections" scope="roster" childId="hillfolk" shared="true"/>
+                  </conditions>
+                </conditionGroup>
+              </conditionGroups>
+            </modifier>
+          </modifiers>
+        </selectionEntry>
+      </selectionEntries>
+      <modifiers>
+        <modifier type="set" value="false" field="hidden">
+          <conditionGroups>
+            <conditionGroup type="or">
+              <conditions>
+                <condition type="atLeast" value="1" field="selections" scope="root-entry" childId="setup" shared="true"/>
+                <condition type="atLeast" value="1" field="selections" scope="parent" childId="wildlings" shared="true"/>
+              </conditions>
+            </conditionGroup>
+          </conditionGroups>
+        </modifier>
+      </modifiers>
+    </selectionEntryGroup>
+  </sharedSelectionEntryGroups>
+</gameSystem>`;
+
+describe('groupHasVisibleOptions', () => {
+  const index = parseGameSystem(BONDED_GST);
+  const bonded = index.groups.get('bonded')!;
+
+  function bondedCtx(opts: { starting: boolean; allegiance: string }) {
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mouse',
+      name: 'Pip',
+      species: 'Mouse',
+      fate: 0,
+      exp: 0,
+      selections: opts.starting
+        ? [
+            {
+              instanceId: 'setup-1',
+              entryId: 'setup',
+              groupId: '',
+              name: 'Setup Only',
+              children: [],
+            },
+          ]
+        : [],
+    };
+    return {
+      warband: warband([model], opts.allegiance),
+      model,
+    };
+  }
+
+  it('hides Bonded critters for a starting band that is not Wildlings or Hillfolk', () => {
+    const ctx = bondedCtx({ starting: true, allegiance: 'arcane' });
+    expect(isHidden(bonded, ctx)).toBe(false);
+    expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(false);
+  });
+
+  it('lists critters for a starting Wildlings band', () => {
+    const ctx = bondedCtx({ starting: true, allegiance: 'wildlings' });
+    expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(true);
+  });
+
+  it('lists critters in campaign even when the group node stays hidden', () => {
+    const ctx = bondedCtx({ starting: false, allegiance: 'arcane' });
+    expect(isHidden(bonded, ctx)).toBe(true);
+    expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(true);
   });
 });
