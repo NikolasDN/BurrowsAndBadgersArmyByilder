@@ -119,6 +119,78 @@ export function minConstraint(
   return min ? min.value : 0;
 }
 
+function isRosterScope(scope: string): boolean {
+  return scope === 'roster' || scope === 'force';
+}
+
+export function selectionLimits(node: {
+  constraints: { type: string; field: string; value: number; scope: string }[];
+}): { local: number; roster: number } {
+  let local = Number.POSITIVE_INFINITY;
+  let roster = Number.POSITIVE_INFINITY;
+  for (const c of node.constraints) {
+    if (c.type !== 'max' || c.field !== 'selections') {
+      continue;
+    }
+    if (isRosterScope(c.scope)) {
+      roster = Math.min(roster, c.value);
+    } else {
+      local = Math.min(local, c.value);
+    }
+  }
+  return { local, roster };
+}
+
+function forEachSelection(
+  sels: RosterSelection[],
+  includeChildren: boolean,
+  visit: (sel: RosterSelection) => void,
+): void {
+  for (const s of sels) {
+    visit(s);
+    if (includeChildren) {
+      forEachSelection(s.children, true, visit);
+    }
+  }
+}
+
+export function rosterSelectionCount(
+  warband: Warband,
+  match: (sel: RosterSelection) => boolean,
+): number {
+  let n = 0;
+  for (const model of warband.models) {
+    forEachSelection(model.selections, true, (sel) => {
+      if (match(sel)) {
+        n += 1;
+      }
+    });
+  }
+  return n;
+}
+
+export function canAddSelection(opts: {
+  localCount: number;
+  localMax: number;
+  rosterCount: number;
+  rosterMax: number;
+  entryLocalCount: number;
+  entryLocalMax: number;
+  entryRosterCount: number;
+  entryRosterMax: number;
+}): { allowed: boolean; replace: boolean } {
+  if (opts.entryLocalCount >= opts.entryLocalMax || opts.entryRosterCount >= opts.entryRosterMax) {
+    return { allowed: false, replace: false };
+  }
+  if (opts.localCount < opts.localMax && opts.rosterCount < opts.rosterMax) {
+    return { allowed: true, replace: false };
+  }
+  if (opts.localMax === 1 && opts.localCount === 1) {
+    return { allowed: true, replace: true };
+  }
+  return { allowed: false, replace: false };
+}
+
 export function resolveEntry(
   indexEntries: Map<string, BsSelectionEntry>,
   id: string,
