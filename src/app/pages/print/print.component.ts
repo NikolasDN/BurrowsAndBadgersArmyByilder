@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CatalogueService } from '../../services/catalogue.service';
 import { RosterService } from '../../services/roster.service';
 import { RosterModel, UnitStats, EMPTY_STATS } from '../../models/roster';
-import { equipmentBuckets, printSkillLines } from '../../data/stats';
+import { printEquipmentBuckets, printSkillLines } from '../../data/stats';
 import { PrintBeastComponent } from '../../components/print-beast/print-beast.component';
 
 export interface PrintBeast {
@@ -69,7 +69,7 @@ export class PrintComponent implements OnInit {
   }
 
   private toBeast(model: RosterModel): PrintBeast {
-    const buckets = equipmentBuckets(this.catalogue.getIndex(), model);
+    const buckets = printEquipmentBuckets(this.catalogue.getIndex(), model);
     return {
       model,
       stats: this.roster.modelStats(model) ?? EMPTY_STATS,

@@ -185,6 +185,79 @@ export function printSkillLine(skill: RosterSkill): string {
   return `${skill.name} (${skill.effect})`;
 }
 
+const GEAR_PROFILE_TYPES = new Set([
+  'Weapon',
+  'Armor',
+  'Item',
+  'Enchanted Item',
+  'Enchanted Weapon',
+  'Enchanted Armor',
+]);
+
+function usefulChar(value?: string): string {
+  const text = tidyEffect(value || '');
+  return !text || text === '-' ? '' : text;
+}
+
+function equipmentEffectFromProfile(profile: {
+  typeName: string;
+  characteristics: { name: string; value: string }[];
+}): string {
+  const byName = (name: string) =>
+    usefulChar(profile.characteristics.find((c) => c.name === name)?.value);
+  const parts: string[] = [];
+  const range = byName('Range');
+  if (range) {
+    parts.push(`Range ${range}`);
+  }
+  const rules = byName('Rules') || byName('Effect') || byName('Description');
+  if (rules) {
+    parts.push(rules);
+  }
+  const keywords = byName('Keywords');
+  if (keywords) {
+    parts.push(keywords);
+  }
+  return parts.join('; ');
+}
+
+function equipmentEffect(index: CatalogueIndex, name: string, entry?: BsSelectionEntry): string {
+  const fromProfile = (profile?: { typeName: string; characteristics: { name: string; value: string }[] }) => {
+    if (!profile || !GEAR_PROFILE_TYPES.has(profile.typeName)) {
+      return '';
+    }
+    return equipmentEffectFromProfile(profile);
+  };
+  if (entry) {
+    for (const link of entry.infoLinks) {
+      const text = fromProfile(index.profiles.get(link.targetId));
+      if (text) {
+        return text;
+      }
+    }
+    for (const profile of entry.profiles) {
+      const text = fromProfile(profile);
+      if (text) {
+        return text;
+      }
+    }
+  }
+  const keys = new Set(nameKeys(name).map((k) => k.toLowerCase()));
+  for (const profile of index.profiles.values()) {
+    if (keys.has(profile.name.toLowerCase())) {
+      const text = fromProfile(profile);
+      if (text) {
+        return text;
+      }
+    }
+  }
+  return '';
+}
+
+export function printGearLine(item: RosterSkill): string {
+  return printSkillLine(item);
+}
+
 function formatInfoLinkName(index: CatalogueIndex, link: BsInfoLink): string {
   const target = index.rules.get(link.targetId) ?? index.profiles.get(link.targetId);
   let name = link.name || target?.name || '';
@@ -284,39 +357,65 @@ export function printSkillLines(index: CatalogueIndex, model: RosterModel): stri
   return modelSkills(index, model).map(printSkillLine);
 }
 
-export function equipmentBuckets(
+function collectEquipment(
   index: CatalogueIndex,
   model: RosterModel,
-): { weapons: string[]; armour: string[]; items: string[]; special: string[]; skills: string[] } {
-  const weapons: string[] = [];
-  const armour: string[] = [];
-  const items: string[] = [];
-  const special: string[] = [];
+): { weapons: RosterSkill[]; armour: RosterSkill[]; items: RosterSkill[]; special: RosterSkill[] } {
+  const weapons: RosterSkill[] = [];
+  const armour: RosterSkill[] = [];
+  const items: RosterSkill[] = [];
+  const special: RosterSkill[] = [];
 
   const visit = (sels: RosterSelection[], groupName: string) => {
     for (const sel of sels) {
       const group = index.groups.get(sel.groupId);
       const name = group?.name || groupName;
       const lower = name.toLowerCase();
+      const selEntry = index.entries.get(sel.entryId);
+      const gear: RosterSkill = {
+        name: sel.name,
+        effect: equipmentEffect(index, sel.name, selEntry),
+      };
       if (lower.includes('weapon slot')) {
-        weapons.push(sel.name);
+        weapons.push(gear);
       } else if (lower.includes('armor slot') || lower.includes('armour slot')) {
-        armour.push(sel.name);
+        armour.push(gear);
       } else if (lower.includes('items slot') || lower === 'items' || lower.includes('bonded')) {
-        items.push(sel.name);
+        items.push(gear);
       } else if (lower.includes('special slot')) {
-        special.push(sel.name);
+        special.push(gear);
       }
       visit(sel.children, name);
     }
   };
   visit(model.selections, '');
+  return { weapons, armour, items, special };
+}
+
+export function equipmentBuckets(
+  index: CatalogueIndex,
+  model: RosterModel,
+): { weapons: string[]; armour: string[]; items: string[]; special: string[]; skills: string[] } {
+  const gear = collectEquipment(index, model);
   return {
-    weapons,
-    armour,
-    items,
-    special,
+    weapons: gear.weapons.map((g) => g.name),
+    armour: gear.armour.map((g) => g.name),
+    items: gear.items.map((g) => g.name),
+    special: gear.special.map((g) => g.name),
     skills: modelSkills(index, model).map((s) => s.name),
+  };
+}
+
+export function printEquipmentBuckets(
+  index: CatalogueIndex,
+  model: RosterModel,
+): { weapons: string[]; armour: string[]; items: string[]; special: string[] } {
+  const gear = collectEquipment(index, model);
+  return {
+    weapons: gear.weapons.map(printGearLine),
+    armour: gear.armour.map(printGearLine),
+    items: gear.items.map(printGearLine),
+    special: gear.special.map(printGearLine),
   };
 }
 

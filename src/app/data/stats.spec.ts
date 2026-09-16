@@ -1,4 +1,4 @@
-import { computeModelPennies, computeStats, equipmentBuckets, printSkillLine, printSkillLines, startingSkills } from './stats';
+import { computeModelPennies, computeStats, equipmentBuckets, printEquipmentBuckets, printGearLine, printSkillLine, printSkillLines, startingSkills } from './stats';
 import { parseGameSystem, finalizeIndex } from './xml-parser';
 import { Warband, RosterModel } from '../models/roster';
 
@@ -132,5 +132,115 @@ describe('stats', () => {
         effect: 'The model may move by flying.',
       }),
     ).toBe('Flight (The model may move by flying.)');
+  });
+
+  it('prints weapon, armour, and item rules in parentheses', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03">
+  <sharedProfiles>
+    <profile id="spear" name="Spear" hidden="false" typeName="Weapon">
+      <characteristics>
+        <characteristic name="Type">Spear</characteristic>
+        <characteristic name="Range">-</characteristic>
+        <characteristic name="Rules">Adds +1 to Strike rolls.</characteristic>
+        <characteristic name="Keywords"/>
+      </characteristics>
+    </profile>
+    <profile id="bow" name="Bow" hidden="false" typeName="Weapon">
+      <characteristics>
+        <characteristic name="Type">-</characteristic>
+        <characteristic name="Range">18"</characteristic>
+        <characteristic name="Rules">-</characteristic>
+        <characteristic name="Keywords">-</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="sword" name="One-handed weapon" hidden="false" typeName="Weapon">
+      <characteristics>
+        <characteristic name="Type">One-handed</characteristic>
+        <characteristic name="Range">-</characteristic>
+        <characteristic name="Rules"/>
+        <characteristic name="Keywords"/>
+      </characteristics>
+    </profile>
+    <profile id="light" name="Light armour" hidden="false" typeName="Armor">
+      <characteristics>
+        <characteristic name="Rules">-</characteristic>
+        <characteristic name="Keywords">Tough (1)</characteristic>
+      </characteristics>
+    </profile>
+    <profile id="antivenom" name="Anti-Venom" hidden="false" typeName="Item">
+      <characteristics>
+        <characteristic name="Rules">Ignore poison for one battle.</characteristic>
+        <characteristic name="Keywords">Single use</characteristic>
+      </characteristics>
+    </profile>
+  </sharedProfiles>
+  <sharedSelectionEntryGroups>
+    <selectionEntryGroup id="wslot" name="Weapon Slots" hidden="false"/>
+    <selectionEntryGroup id="aslot" name="Armor Slots" hidden="false"/>
+    <selectionEntryGroup id="islot" name="Items Slot" hidden="false"/>
+  </sharedSelectionEntryGroups>
+  <sharedSelectionEntries>
+    <selectionEntry id="mouse" name="Mouse" type="model" hidden="false"/>
+    <selectionEntry id="spear" name="Spear" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-s" name="Spear" targetId="spear" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="bow" name="Bow" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-b" name="Bow" targetId="bow" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="sword" name="One-handed weapon" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-w" name="One-handed weapon" targetId="sword" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="light" name="Light armour" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-a" name="Light armour" targetId="light" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+    <selectionEntry id="antivenom" name="Anti-Venom" type="upgrade" hidden="false">
+      <infoLinks>
+        <infoLink hidden="false" id="il-i" name="Anti-Venom" targetId="antivenom" type="profile"/>
+      </infoLinks>
+    </selectionEntry>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = finalizeIndex(parseGameSystem(gst));
+    const model: RosterModel = {
+      instanceId: 'm1',
+      entryId: 'mouse',
+      name: 'Pip',
+      species: 'Mouse',
+      fate: 0,
+      exp: 0,
+      selections: [
+        { instanceId: 's1', entryId: 'spear', groupId: 'wslot', name: 'Spear', children: [] },
+        { instanceId: 's2', entryId: 'bow', groupId: 'wslot', name: 'Bow', children: [] },
+        { instanceId: 's3', entryId: 'light', groupId: 'aslot', name: 'Light armour', children: [] },
+        { instanceId: 's4', entryId: 'antivenom', groupId: 'islot', name: 'Anti-Venom', children: [] },
+        { instanceId: 's5', entryId: 'sword', groupId: 'wslot', name: 'One-handed weapon', children: [] },
+      ],
+    };
+    expect(equipmentBuckets(index, model).weapons).toEqual(['Spear', 'Bow', 'One-handed weapon']);
+    expect(printEquipmentBuckets(index, model)).toEqual({
+      weapons: [
+        'Spear (Adds +1 to Strike rolls.)',
+        'Bow (Range 18")',
+        'One-handed weapon',
+      ],
+      armour: ['Light armour (Tough (1))'],
+      items: ['Anti-Venom (Ignore poison for one battle.; Single use)'],
+      special: [],
+    });
+    expect(
+      printGearLine({
+        name: 'Spear',
+        effect: 'Adds +1 to Strike rolls.',
+      }),
+    ).toBe('Spear (Adds +1 to Strike rolls.)');
   });
 });
