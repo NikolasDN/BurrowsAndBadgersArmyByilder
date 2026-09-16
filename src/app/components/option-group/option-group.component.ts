@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   BsSelectionEntry,
@@ -24,11 +24,12 @@ import { pennyCost } from '../../data/xml-parser';
   templateUrl: './option-group.component.html',
   styleUrl: './option-group.component.scss',
 })
-export class OptionGroupComponent {
+export class OptionGroupComponent implements OnInit {
   @Input({ required: true }) group!: BsSelectionEntryGroup;
   @Input({ required: true }) model!: RosterModel;
   @Input() parentInstanceId: string | null = null;
   @Input() depth = 0;
+  @Input() startOpen = false;
 
   private readonly catalogue = inject(CatalogueService);
   private readonly roster = inject(RosterService);
@@ -36,6 +37,12 @@ export class OptionGroupComponent {
   open = false;
   query = '';
   hintFor: string | null = null;
+
+  ngOnInit(): void {
+    if (this.startOpen) {
+      this.open = true;
+    }
+  }
 
   get ctx() {
     return this.roster.ctx(this.model);

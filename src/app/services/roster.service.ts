@@ -68,7 +68,8 @@ export class RosterService {
     if (!wb) {
       throw new Error('No warband');
     }
-    return { warband: wb, model };
+    const extraRosterIds = this.catalogue.ready() ? this.catalogue.idsAliasedTo(wb.allegianceEntryId) : [];
+    return { warband: wb, model, extraRosterIds };
   }
 
   create(factionId: string, name = 'New Warband'): Warband {

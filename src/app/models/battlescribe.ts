@@ -170,6 +170,8 @@ export interface CatalogueIndex {
   models: BsSelectionEntry[];
   denUpgrades: BsSelectionEntry[];
   characterGroupId: string;
+  /** entryLink id -> target selection entry/group id */
+  entryLinkTargets: Map<string, string>;
 }
 
 export const COST_PENNY = '6752-9e0b-692e-d5b9';

@@ -76,6 +76,20 @@ describe('xml-parser', () => {
     ]);
   });
 
+  it('indexes entryLink ids so allegiance aliases can be resolved', () => {
+    const gst = `<?xml version="1.0" encoding="UTF-8"?>
+<gameSystem xmlns="http://www.battlescribe.net/schema/gameSystemSchema" id="sys-1" name="Test" battleScribeVersion="2.03" revision="1">
+  <entryLinks>
+    <entryLink import="true" name="Allegiance: Royalists" hidden="false" id="link-royal" targetId="entry-royal" type="selectionEntry"/>
+  </entryLinks>
+  <sharedSelectionEntries>
+    <selectionEntry type="upgrade" name="Allegiance: Royalists" hidden="false" id="entry-royal"/>
+  </sharedSelectionEntries>
+</gameSystem>`;
+    const index = parseGameSystem(gst);
+    expect(index.entryLinkTargets.get('link-royal')).toBe('entry-royal');
+  });
+
   it('keeps allegiance ids unique across catalogues', () => {
     const index = parseGameSystem(GST);
     parseCatalogue(CAT, index);

@@ -11,6 +11,8 @@ export interface EvalContext {
   warband: Warband;
   model?: RosterModel;
   siblingEntryIds?: string[];
+  /** Extra roster ids that count as selected, e.g. allegiance entryLink ids. */
+  extraRosterIds?: string[];
 }
 
 function walkSelections(sels: RosterSelection[]): string[] {
@@ -22,8 +24,17 @@ function walkSelections(sels: RosterSelection[]): string[] {
   return ids;
 }
 
-export function allEntryIds(warband: Warband, model?: RosterModel): { roster: string[]; root: string[] } {
-  const roster: string[] = [warband.allegianceEntryId, ...warband.denUpgradeIds];
+export function allEntryIds(warband: Warband, model?: RosterModel, extraRosterIds: string[] = []): {
+  roster: string[];
+  root: string[];
+} {
+  const roster: string[] = [warband.allegianceEntryId];
+  for (const id of extraRosterIds) {
+    if (id && id !== warband.allegianceEntryId) {
+      roster.push(id);
+    }
+  }
+  roster.push(...warband.denUpgradeIds);
   for (const m of warband.models) {
     roster.push(m.entryId);
     roster.push(...walkSelections(m.selections));
@@ -37,7 +48,7 @@ function count(ids: string[], childId: string): number {
 }
 
 function evalCondition(cond: BsCondition, ctx: EvalContext): boolean {
-  const ids = allEntryIds(ctx.warband, ctx.model);
+  const ids = allEntryIds(ctx.warband, ctx.model, ctx.extraRosterIds);
   let n = 0;
   const scope = cond.scope;
   if (scope === 'roster' || scope === 'force') {
