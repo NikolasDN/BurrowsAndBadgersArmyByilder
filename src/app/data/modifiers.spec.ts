@@ -319,9 +319,9 @@ describe('groupHasVisibleOptions', () => {
     expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(true);
   });
 
-  it('lists critters in campaign even when the group node stays hidden', () => {
+  it('hides critters in campaign when the group node is hidden', () => {
     const ctx = bondedCtx({ starting: false, allegiance: 'arcane' });
     expect(isHidden(bonded, ctx)).toBe(true);
-    expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(true);
+    expect(groupHasVisibleOptions(bonded, ctx, index.entries, index.groups)).toBe(false);
   });
 });

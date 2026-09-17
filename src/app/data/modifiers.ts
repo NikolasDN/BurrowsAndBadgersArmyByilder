@@ -248,6 +248,9 @@ export function groupHasVisibleOptions(
   entries: Map<string, BsSelectionEntry>,
   groups: Map<string, BsSelectionEntryGroup>,
 ): boolean {
+  if (isHidden(group, ctx)) {
+    return false;
+  }
   const resolved = resolveGroupChildren(group, entries, groups);
   if (resolved.entries.some((e) => !isHidden(e, ctx))) {
     return true;
