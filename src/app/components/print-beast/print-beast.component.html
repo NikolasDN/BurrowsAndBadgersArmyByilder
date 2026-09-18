@@ -9,18 +9,20 @@
     <div class="trackers">
       <div>
         <span class="tiny">Wounds</span>
-        <div class="grid16">
+        <div class="grid16 wounds-grid">
           @for (on of boxes(model?.fate || 0); track $index) {
-            <i [class.filled]="on" [class.special-box]="isSpecialBox($index)">{{ $index + 1 }}</i>
+            <i [class.filled]="on" [class.special-box]="isWoundsSpecialBox($index)"></i>
           }
         </div>
       </div>
-      <div>
-        <span class="tiny">Exp</span>
-        <div class="grid16">
-          @for (on of boxes(model?.exp || 0); track $index) {
-            <i [class.filled]="on" [class.special-box]="isSpecialBox($index)">{{ $index + 1 }}</i>
-          }
+      <div class="tracker-fields">
+        <div class="tracker-field">
+          <span class="tiny">Fate</span>
+          <div class="fill-box"></div>
+        </div>
+        <div class="tracker-field">
+          <span class="tiny">Experience</span>
+          <div class="fill-box"></div>
         </div>
       </div>
     </div>
