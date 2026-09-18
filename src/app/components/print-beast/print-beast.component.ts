@@ -19,4 +19,8 @@ export class PrintBeastComponent {
   boxes(filled: number): boolean[] {
     return Array.from({ length: 16 }, (_, i) => i < filled);
   }
+
+  isSpecialBox(index: number): boolean {
+    return (index + 1) % 3 === 0;
+  }
 }

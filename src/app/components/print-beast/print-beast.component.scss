@@ -46,11 +46,21 @@ label,
   font-size: 0.45rem;
   border: 1px solid #4a301a;
   height: 0.7rem;
+  box-sizing: border-box;
 }
 
 .grid16 i.filled {
   background: #3d5c3a;
   color: #f6edd8;
+}
+
+.grid16 i.special-box {
+  border-width: 2px;
+  background: #eee3cc;
+}
+
+.grid16 i.special-box.filled {
+  border-color: #2f4b2d;
 }
 
 .body {
