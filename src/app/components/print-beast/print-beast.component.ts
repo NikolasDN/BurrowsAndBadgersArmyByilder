@@ -19,4 +19,9 @@ export class PrintBeastComponent {
   boxes(filled: number): boolean[] {
     return Array.from({ length: 16 }, (_, i) => i < filled);
   }
+
+  isWoundsSpecialBox(index: number): boolean {
+    const box = index + 1;
+    return box === 4 || box === 7 || box === 10 || box === 13;
+  }
 }
