@@ -8,7 +8,7 @@
     </div>
     <div class="trackers">
       <div>
-        <span class="tiny">Fate</span>
+        <span class="tiny">Wounds</span>
         <div class="grid16">
           @for (on of boxes(model?.fate || 0); track $index) {
             <i [class.filled]="on" [class.special-box]="isSpecialBox($index)">{{ $index + 1 }}</i>
