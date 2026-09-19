@@ -8,7 +8,7 @@ import {
   UNIT_PROFILE_TYPE,
 } from '../models/battlescribe';
 import { EMPTY_STATS, RosterModel, RosterSelection, UnitStats } from '../models/roster';
-import { modifierActive, EvalContext } from './modifiers';
+import { modifierActive, EvalContext, modifiedDefaultAmount } from './modifiers';
 import { pennyCost } from './xml-parser';
 
 function collectSelections(sels: RosterSelection[]): RosterSelection[] {
@@ -69,25 +69,6 @@ function isPennyField(field: string, entry: BsSelectionEntry): boolean {
 
 function isCostChild(entry: BsSelectionEntry): boolean {
   return /^(?:Variable\s+)?Cost\b/i.test(entry.name);
-}
-
-function modifiedDefaultAmount(entry: BsSelectionEntry, ctx: EvalContext): number {
-  let amount = entry.defaultAmount;
-  for (const mod of entry.modifiers) {
-    if (mod.field !== 'defaultAmount' || !modifierActive(mod, ctx)) {
-      continue;
-    }
-    const n = Number(mod.value);
-    if (!Number.isFinite(n)) {
-      continue;
-    }
-    if (mod.type === 'set') {
-      amount = n;
-    } else if (mod.type === 'increment') {
-      amount += n;
-    }
-  }
-  return amount;
 }
 
 /** Base penny cost plus catalogue modifiers used by rare starting gear and characters. */
