@@ -4,6 +4,7 @@ import {
   canAddSelection,
   groupHasVisibleOptions,
   isHidden,
+  modifiedDefaultAmount,
   resolveEntryChildren,
   rosterSelectionCount,
   selectionLimits,
@@ -124,6 +125,71 @@ describe('selection limits', () => {
         entryRosterMax: 1,
       }),
     ).toEqual({ allowed: false, replace: false });
+  });
+});
+
+describe('modifiedDefaultAmount', () => {
+  it('applies parent-scope defaultAmount conditions when sibling selections are provided', () => {
+    const node = {
+      defaultAmount: 0,
+      modifiers: [
+        {
+          type: 'set',
+          value: '1',
+          field: 'defaultAmount',
+          conditions: [
+            {
+              type: 'atLeast',
+              value: '1',
+              field: 'selections',
+              scope: 'parent',
+              childId: 'kindred-entry',
+              shared: true,
+              includeChildSelections: true,
+              includeChildForces: true,
+            },
+          ],
+          conditionGroups: [],
+        },
+      ],
+    };
+    const wb = warband([]);
+    expect(modifiedDefaultAmount(node, { warband: wb })).toBe(0);
+    expect(
+      modifiedDefaultAmount(node, {
+        warband: wb,
+        siblingEntryIds: ['kindred-entry'],
+      }),
+    ).toBe(1);
+  });
+
+  it('counts entryLink aliases for roster-scope defaultAmount conditions', () => {
+    const node = {
+      defaultAmount: 0,
+      modifiers: [
+        {
+          type: 'set',
+          value: '1',
+          field: 'defaultAmount',
+          conditions: [
+            {
+              type: 'atLeast',
+              value: '1',
+              field: 'selections',
+              scope: 'roster',
+              childId: 'royal-link',
+              shared: true,
+              includeChildSelections: true,
+              includeChildForces: true,
+            },
+          ],
+          conditionGroups: [],
+        },
+      ],
+    };
+    const wb = warband([], 'royal-entry');
+    expect(modifiedDefaultAmount(node, { warband: wb })).toBe(0);
+    expect(modifiedDefaultAmount(node, { warband: wb, extraRosterIds: ['royal-link'] })).toBe(1);
   });
 });
 
