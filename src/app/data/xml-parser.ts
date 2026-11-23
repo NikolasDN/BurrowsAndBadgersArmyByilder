@@ -223,6 +223,9 @@ function parseEntryLink(el: Element, index: CatalogueIndex): BsEntryLink {
   if (link.id && link.targetId) {
     index.entryLinkTargets.set(link.id, link.targetId);
   }
+  if (link.id) {
+    index.entryLinks.set(link.id, link);
+  }
   return link;
 }
 
@@ -371,6 +374,7 @@ function emptyIndex(): CatalogueIndex {
     costTypes: [],
     categories: new Map(),
     entries: new Map(),
+    entryLinks: new Map(),
     groups: new Map(),
     profiles: new Map(),
     rules: new Map(),

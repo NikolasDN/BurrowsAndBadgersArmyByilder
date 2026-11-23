@@ -8,7 +8,7 @@ import {
 import { CatalogueService } from './catalogue.service';
 import { SETUP_ONLY_ID } from '../models/battlescribe';
 import { computeModelPennies, computeRating, computeStats, computeWarbandPennies } from '../data/stats';
-import { EvalContext } from '../data/modifiers';
+import { EvalContext, modifiedDefaultAmount } from '../data/modifiers';
 import { laborCost, materialCost, pennyCost } from '../data/xml-parser';
 
 function uid(): string {
@@ -96,6 +96,7 @@ export class RosterService {
       models: [],
       updatedAt: new Date().toISOString(),
     };
+    wb.denUpgradeIds = this.startingDenUpgradeIds(wb);
     this.warband.set(wb);
     this.persistCurrent();
     return wb;
@@ -248,6 +249,36 @@ export class RosterService {
 
   newSelection(entryId: string, groupId: string, name: string): RosterSelection {
     return { instanceId: uid(), entryId, groupId, name, children: [] };
+  }
+
+  private startingDenUpgradeIds(warband: Warband): string[] {
+    if (!this.catalogue.ready()) {
+      return [];
+    }
+    const index = this.catalogue.getIndex();
+    const aliases = this.catalogue.idsAliasedTo(warband.allegianceEntryId);
+    const siblingEntryIds = [warband.allegianceEntryId, ...aliases];
+    const ctx: EvalContext = { warband, extraRosterIds: aliases, siblingEntryIds };
+    const denIdSet = new Set(index.denUpgrades.map((den) => den.id));
+    const selected = new Set<string>();
+
+    for (const den of index.denUpgrades) {
+      if (modifiedDefaultAmount(den, ctx) > 0) {
+        selected.add(den.id);
+      }
+    }
+
+    for (const [linkId, targetId] of index.entryLinkTargets) {
+      if (!denIdSet.has(targetId)) {
+        continue;
+      }
+      const link = index.entryLinks.get(linkId);
+      if (link && modifiedDefaultAmount(link, ctx) > 0) {
+        selected.add(targetId);
+      }
+    }
+
+    return index.denUpgrades.filter((den) => selected.has(den.id)).map((den) => den.id);
   }
 
   private readAll(): Warband[] {

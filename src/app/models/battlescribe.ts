@@ -163,6 +163,7 @@ export interface CatalogueIndex {
   costTypes: BsCostType[];
   categories: Map<string, BsCategory>;
   entries: Map<string, BsSelectionEntry>;
+  entryLinks: Map<string, BsEntryLink>;
   groups: Map<string, BsSelectionEntryGroup>;
   profiles: Map<string, BsProfile>;
   rules: Map<string, BsRule>;

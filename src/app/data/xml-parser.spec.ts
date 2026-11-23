@@ -88,6 +88,7 @@ describe('xml-parser', () => {
 </gameSystem>`;
     const index = parseGameSystem(gst);
     expect(index.entryLinkTargets.get('link-royal')).toBe('entry-royal');
+    expect(index.entryLinks.get('link-royal')?.targetId).toBe('entry-royal');
   });
 
   it('keeps allegiance ids unique across catalogues', () => {

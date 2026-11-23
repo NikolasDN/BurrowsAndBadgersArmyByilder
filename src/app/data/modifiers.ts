@@ -103,6 +103,30 @@ export function modifierActive(mod: BsModifier, ctx: EvalContext): boolean {
   return results.every(Boolean);
 }
 
+export function modifiedDefaultAmount(
+  node: { defaultAmount: number; modifiers: BsModifier[] },
+  ctx: EvalContext,
+): number {
+  let amount = node.defaultAmount;
+  for (const mod of node.modifiers) {
+    if (mod.field !== 'defaultAmount' || !modifierActive(mod, ctx)) {
+      continue;
+    }
+    const n = Number(mod.value);
+    if (!Number.isFinite(n)) {
+      continue;
+    }
+    if (mod.type === 'set') {
+      amount = n;
+    } else if (mod.type === 'increment') {
+      amount += n;
+    } else if (mod.type === 'decrement') {
+      amount -= n;
+    }
+  }
+  return amount;
+}
+
 export function isHidden(
   node: { hidden: boolean; modifiers: BsModifier[] },
   ctx: EvalContext,
@@ -248,6 +272,9 @@ export function groupHasVisibleOptions(
   entries: Map<string, BsSelectionEntry>,
   groups: Map<string, BsSelectionEntryGroup>,
 ): boolean {
+  if (isHidden(group, ctx)) {
+    return false;
+  }
   const resolved = resolveGroupChildren(group, entries, groups);
   if (resolved.entries.some((e) => !isHidden(e, ctx))) {
     return true;

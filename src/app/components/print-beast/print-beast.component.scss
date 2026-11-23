@@ -40,17 +40,45 @@ label,
 }
 
 .grid16 i {
-  display: grid;
-  place-items: center;
+  display: block;
   font-style: normal;
-  font-size: 0.45rem;
   border: 1px solid #4a301a;
   height: 0.7rem;
+  box-sizing: border-box;
+  background: #fffdf7;
 }
 
-.grid16 i.filled {
+.wounds-grid i.filled {
   background: #3d5c3a;
   color: #f6edd8;
+}
+
+.wounds-grid i.special-box {
+  border-width: 2px;
+  background: #eee3cc;
+}
+
+.wounds-grid i.special-box.filled {
+  border-color: #2f4b2d;
+}
+
+.tracker-fields {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+}
+
+.tracker-field {
+  display: grid;
+  grid-template-columns: 1fr 2.1rem;
+  align-items: end;
+  gap: 0.2rem;
+}
+
+.fill-box {
+  border: 1px solid #4a301a;
+  background: #fffdf7;
+  height: 0.8rem;
 }
 
 .body {
