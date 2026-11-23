@@ -5,6 +5,7 @@ import { RosterService } from '../../services/roster.service';
 import { RosterModel, UnitStats, EMPTY_STATS } from '../../models/roster';
 import { printEquipmentBuckets, printSkillLines } from '../../data/stats';
 import { PrintBeastComponent } from '../../components/print-beast/print-beast.component';
+import { FitTextDirective } from '../../directives/fit-text.directive';
 
 export interface PrintBeast {
   model: RosterModel | null;
@@ -18,7 +19,7 @@ export interface PrintBeast {
 
 @Component({
   selector: 'app-print',
-  imports: [RouterLink, PrintBeastComponent],
+  imports: [RouterLink, PrintBeastComponent, FitTextDirective],
   templateUrl: './print.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './print.component.scss',

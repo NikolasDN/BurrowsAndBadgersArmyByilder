@@ -17,7 +17,7 @@
 
 .sheet {
   width: 210mm;
-  height: 297mm;
+  height: 277mm; // same as the printed sheet, so text fitting on screen matches print
   margin: 0 auto 12mm;
   background: #efe6d2;
   color: #2c1810;
@@ -57,7 +57,7 @@
   padding: 1.5mm;
   background: #fbf7ee;
   white-space: pre-wrap;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .field.tall {

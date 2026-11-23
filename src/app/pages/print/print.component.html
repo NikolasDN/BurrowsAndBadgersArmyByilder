@@ -8,9 +8,9 @@
     <div class="top">
       <div class="band-block">
         <label class="banner">Band name</label>
-        <div class="field tall">{{ warband.name }}</div>
+        <div class="field tall" appFitText>{{ warband.name }}</div>
         <label class="banner">Allegiance</label>
-        <div class="field">{{ warband.factionName }}</div>
+        <div class="field" appFitText>{{ warband.factionName }}</div>
         <div class="resource-row">
           <div class="box">
             <span>{{ rating }}</span>
@@ -28,11 +28,11 @@
           <div class="sack"><b>{{ warband.treasury }}</b><label>Treasury</label></div>
         </div>
         <label class="banner">Notes</label>
-        <div class="notes">{{ warband.notes }}</div>
+        <div class="notes" appFitText>{{ warband.notes }}</div>
       </div>
       <div class="stash-block">
         <label class="banner">Stashed equipment</label>
-        <div class="stash">{{ warband.stashedEquipment }}</div>
+        <div class="stash" appFitText>{{ warband.stashedEquipment }}</div>
         <label class="banner">Den upgrades</label>
         <ol class="dens">
           @for (n of [0,1,2,3,4,5,6,7,8,9,10,11]; track n) {

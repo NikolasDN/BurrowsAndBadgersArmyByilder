@@ -1,8 +1,10 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { EMPTY_STATS, RosterModel, UnitStats } from '../../models/roster';
+import { FitTextDirective } from '../../directives/fit-text.directive';
 
 @Component({
   selector: 'app-print-beast',
+  imports: [FitTextDirective],
   templateUrl: './print-beast.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './print-beast.component.scss',
